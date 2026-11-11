@@ -61,3 +61,4 @@ web/e2e/results.json
 # TypeScript and framework build artefacts
 *.tsbuildinfo
 next-env.d.ts
+.neon

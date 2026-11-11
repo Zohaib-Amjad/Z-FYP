@@ -91,6 +91,8 @@ Everything runs on localhost; there is no hosting, payment, map or third-party s
    npm run db:seed
    ```
 
+   To choose your own password for every seeded account (recommended for any shared or online database), set `SEED_PASSWORD` first, for example `SEED_PASSWORD='your-password' npm run db:seed` (PowerShell: `$env:SEED_PASSWORD='your-password'; npm run db:seed`).
+
 6. **Start both servers:**
 
    ```bash

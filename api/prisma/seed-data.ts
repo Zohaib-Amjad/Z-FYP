@@ -1,6 +1,6 @@
 import { BookingStatus, FuelType, Role, Transmission, VehicleType } from '@prisma/client';
 
-export const DEV_PASSWORD = 'Prestige#2026';
+export const DEV_PASSWORD = process.env.SEED_PASSWORD ?? 'Prestige#2026';
 
 export const STAFF = [
   {

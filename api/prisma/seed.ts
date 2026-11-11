@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import { addDays, addHours, isSaturday, isSunday, setHours, startOfDay, subDays } from 'date-fns';
@@ -14,6 +13,7 @@ import {
   SampleStep,
   VehicleSeed,
 } from './seed-data';
+import { writeSeedImageFiles } from './seed-images';
 
 const prisma = new PrismaClient();
 
@@ -63,32 +63,6 @@ const NOTIFICATION_BY_ACTION: Record<
   },
 };
 
-const slugify = (text: string): string =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-
-const buildPlaceholderSvg = (vehicle: VehicleSeed, variant: number): string => {
-  const [hueA, hueB] = vehicle.hues;
-  const angle = variant === 1 ? 135 : 45;
-  const title = `${vehicle.manufacturer} ${vehicle.model}`;
-  const label = variant === 1 ? 'Exterior' : 'Interior';
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
-  <defs>
-    <linearGradient id="g" gradientTransform="rotate(${angle})">
-      <stop offset="0%" stop-color="hsl(${hueA},45%,14%)"/>
-      <stop offset="60%" stop-color="hsl(${hueB},40%,28%)"/>
-      <stop offset="100%" stop-color="hsl(${hueB},55%,52%)"/>
-    </linearGradient>
-  </defs>
-  <rect width="1600" height="1000" fill="url(#g)"/>
-  <text x="800" y="480" text-anchor="middle" font-family="Georgia, serif" font-size="84" fill="#f5ecd7">${title}</text>
-  <text x="800" y="560" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" letter-spacing="10" fill="#d6c08a">${label.toUpperCase()}</text>
-</svg>
-`;
-};
-
 const seedUsers = async (passwordHash: string) => {
   const upsert = (
     email: string,
@@ -130,19 +104,14 @@ const seedDealerships = async () => {
 };
 
 const writeVehicleImages = async (vehicleId: string, vehicle: VehicleSeed) => {
-  fs.mkdirSync(uploadSeedDir, { recursive: true });
-  const slug = slugify(`${vehicle.manufacturer}-${vehicle.model}`);
-  const images = [1, 2].map(variant => {
-    const fileName = `${slug}-${variant}.svg`;
-    fs.writeFileSync(path.join(uploadSeedDir, fileName), buildPlaceholderSvg(vehicle, variant));
-    return {
-      vehicleId,
-      url: `/uploads/seed/${fileName}`,
-      altText: `${vehicle.manufacturer} ${vehicle.model} ${variant === 1 ? 'exterior' : 'interior'}`,
-      isPrimary: variant === 1,
-      sortOrder: variant,
-    };
-  });
+  const fileNames = writeSeedImageFiles(uploadSeedDir, vehicle);
+  const images = fileNames.map((fileName, index) => ({
+    vehicleId,
+    url: `/uploads/seed/${fileName}`,
+    altText: `${vehicle.manufacturer} ${vehicle.model} ${index === 0 ? 'exterior' : 'interior'}`,
+    isPrimary: index === 0,
+    sortOrder: index + 1,
+  }));
   if ((await prisma.vehicleImage.count({ where: { vehicleId } })) === 0) {
     await prisma.vehicleImage.createMany({ data: images });
   }
@@ -343,7 +312,11 @@ const main = async () => {
   console.log(`  Users: ${staff.length} staff, ${customers.length} customers`);
   console.log(`  Dealerships: ${dealerships.length}, vehicles: ${vehicles.length}`);
   console.log(`  Time slots: ${slotCount}, bookings: ${bookingCount}`);
-  console.log(`  Development password for every account: ${DEV_PASSWORD}`);
+  console.log(
+    process.env.SEED_PASSWORD
+      ? '  Password for every account: the value of SEED_PASSWORD'
+      : `  Development password for every account: ${DEV_PASSWORD}`,
+  );
   console.log(`  Staff logins: ${STAFF.map(s => s.email).join(', ')}`);
   console.log(`  Customer logins: ${CUSTOMERS.map(c => c.email).join(', ')}`);
 };

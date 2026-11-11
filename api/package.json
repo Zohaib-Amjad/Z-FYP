@@ -19,6 +19,7 @@
     "docs:postman": "tsx scripts/postman.ts",
     "docs:api": "tsx scripts/apiReference.ts",
     "demo:reset": "tsx scripts/demoReset.ts",
+    "seed:images": "tsx scripts/seedImages.ts",
     "test:concurrency": "vitest run -t CONCURRENCY",
     "test:coverage": "vitest run --coverage",
     "e2e:serve": "tsx scripts/e2e-serve.ts",
