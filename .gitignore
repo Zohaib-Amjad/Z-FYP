@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Next.js build output
+.next/
+out/
+
+# Express build output
+api/dist/
+dist/
+
+# Uploaded files
+uploads/
+api/uploads/
+
+# Testing and coverage
+coverage/
+.nyc_output/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Database & Prisma SQLite or dev artifacts
+*.db
+*.sqlite
+
+uploads-test/
+api/uploads-test/
+
+# End-to-end test output
+.next-e2e/
+uploads-e2e/
+api/uploads-e2e/
+web/playwright-report/
+web/test-results/
+web/e2e/.auth/
+api/test-results.json
+web/test-results.json
+web/e2e/results.json
+
+# TypeScript and framework build artefacts
+*.tsbuildinfo
+next-env.d.ts

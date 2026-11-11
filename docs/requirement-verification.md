@@ -1,0 +1,45 @@
+# Requirement verification
+
+Evidence for every functional requirement (FR-1 to FR-10) and every business rule (A1 to A11): where it is implemented and which automated test proves it. Paths are relative to the repository root. API tests are in `api/tests`, component tests in `web/tests`, end-to-end tests in `web/e2e`. The run that this table refers to is in [test-report.md](test-report.md); the endpoint and page view of the functional requirements is in [requirements-traceability.md](requirements-traceability.md), and detailed acceptance criteria are in [srs-draft.md](srs-draft.md).
+
+Status legend: **Verified** means the rule is implemented, and at least one test fails if the rule is broken. Nothing in this table is incomplete.
+
+## Functional requirements
+
+| ID | Where it is implemented | Test that proves it | Status |
+| --- | --- | --- | --- |
+| FR-1 Register, log in and out; staff sign-in | `api/src/services/auth.service.ts` (`register`, `login`), `api/src/middleware/auth.ts` (`authenticate`, `requireRole`), `api/src/utils/cookies.ts`, `web/src/components/auth/LoginForm.tsx`, `RegisterForm.tsx`, `web/src/middleware.ts` | `auth.test.ts`, `auth.middleware.test.ts`, `security.test.ts`, E2E-01, E2E-08, E2E-11 | Verified |
+| FR-2 View and update own profile | `api/src/services/profile.service.ts`, `api/src/routes/profile.routes.ts`, `web/src/components/account/ProfileForm.tsx` | `profile.test.ts`, `security.test.ts` (no access to other users) | Verified |
+| FR-3 Staff manage vehicles and dealerships (specifications, features, images, availability, deactivation) | `api/src/services/vehicle.service.ts`, `vehicleImage.service.ts`, `vehicleAvailability.service.ts`, `dealership.service.ts`, `web/src/components/admin/vehicles`, `.../dealerships` | `adminVehicles.test.ts`, `vehicleImages.test.ts`, `vehicleAvailability.test.ts`, `dealerships.test.ts`, E2E-09, E2E-10 | Verified |
+| FR-4 Browse, search and filter vehicles; vehicle detail | `api/src/services/catalog.service.ts`, `api/src/validators/catalog.validators.ts`, `web/src/components/catalog` | `catalog.test.ts`, `likeEscape.test.ts`, `web/tests/catalog.test.ts`, E2E-01 | Verified |
+| FR-5 Staff manage slots; customers see available slots | `api/src/services/slot.service.ts`, `slotBulk.service.ts`, `slotRules.ts`, `slotAvailability.service.ts` | `adminSlots.test.ts`, `slotsBulk.test.ts`, `slotsAvailability.test.ts`, `database.test.ts`, E2E-09 | Verified |
+| FR-6 Book a test drive; no duplicate or conflicting bookings | `api/src/services/booking.service.ts` (`createBooking`), `bookingRules.ts`, `web/src/components/booking` | `bookingsCreate.test.ts`, `bookingsConcurrency.test.ts`, `slotPreview.test.ts`, E2E-01, E2E-06 | Verified |
+| FR-7 Approve, reject, reschedule, cancel, complete | `api/src/services/bookingAction.service.ts`, `bookingTransition.ts`, `bookingStateMachine.ts`, `web/src/components/admin/bookings` | `bookingActions.test.ts`, `bookingStateMachine.test.ts`, E2E-02, E2E-03, E2E-04, E2E-07 | Verified |
+| FR-8 Customer history views and cancellation | `api/src/services/myBooking.service.ts` (`viewFilter`, `cancelMyBooking`), `cancellationPolicy.ts`, `web/src/components/bookings` | `myBookings.test.ts`, `web/tests/myBookings.test.ts`, `web/tests/components/MyBookingCard.test.tsx`, E2E-05 | Verified |
+| FR-9 Staff booking list, filters and dashboard; customer notifications | `api/src/services/adminBooking.service.ts`, `dashboard.service.ts`, `notificationService.ts`, `notificationInbox.service.ts`, `web/src/components/admin/dashboard`, `web/src/components/notifications` | `adminBookingsList.test.ts`, `dashboard.test.ts`, `notifications.test.ts`, `notificationTemplates.test.ts`, `mailService.test.ts`, `adminCustomers.test.ts`, E2E-02, E2E-03 | Verified |
+| FR-10 Central relational database, validation, correct responses | `api/prisma/schema.prisma` and migrations, `api/src/validators/*`, `api/src/middleware/validate.ts`, `errorHandler.ts`, `api/src/utils/response.ts` | `routeAudit.test.ts`, `validators.test.ts`, `errorHandling.test.ts`, `errorCodes.test.ts`, `database.test.ts`, `openapi.test.ts` | Verified |
+
+## Business rules
+
+| Rule | Where it is implemented | Test that proves it | Status |
+| --- | --- | --- | --- |
+| A1 Roles CUSTOMER and STAFF; customers self-register; staff come from the seed or an existing staff member; staff manage everything | Role forced to CUSTOMER in `auth.service.ts` (`register`); `createStaffAccount` in `staff.service.ts`; `router.use(authenticate, requireRole('STAFF'))` in `routes/admin.routes.ts` and `staff.routes.ts`; seed in `api/prisma/seed.ts` | `auth.test.ts` (role cannot be supplied), `routeAudit.test.ts` (every route classified), `security.test.ts`, E2E-08 | Verified |
+| A2 Statuses, active statuses, allowed transitions, reasons required, complete only after the start | `api/src/services/bookingStateMachine.ts` (`BOOKING_TRANSITIONS`, `assertTransition`), `bookingAction.service.ts`, `bookingStatus.ts` | `bookingStateMachine.test.ts`, `bookingActions.test.ts`, E2E-03, E2E-07 | Verified |
+| A3 Customer cancels only at least 24 h before; staff cancel any time with a reason | `api/src/services/cancellationPolicy.ts` (`getCancellationEligibility`, `assertCancellable`), `myBooking.service.ts` (`cancelMyBooking`), `bookingAction.service.ts` (`cancelBookingByStaff`); `CANCELLATION_WINDOW_HOURS` in `config/env.ts` | `myBookings.test.ts`, `bookingActions.test.ts`, E2E-05 | Verified |
+| A4 Slot rules: end after start, no overlap per vehicle (database), available means active, future and free | `time_slots_end_after_start` and `time_slots_no_vehicle_overlap` in migration `scheduling_constraints`; `slotRules.ts` (`assertValidRange`, `assertInFuture`, `assertSchedulable`); `utils/slotAvailability.ts` | `database.test.ts`, `adminSlots.test.ts`, `slotsBulk.test.ts`, `slotsAvailability.test.ts`, E2E-09 | Verified |
+| A5 One active booking per slot (index and row lock); no overlapping bookings per customer; at most 3 active; one winner in a race | `one_active_booking_per_slot` in migration `scheduling_constraints`; `booking.service.ts` (`createBooking`), `bookingRules.ts` (`assertSlotFree`, `assertNoCustomerOverlap`, `assertUnderBookingLimit`), `utils/locks.ts`; `MAX_ACTIVE_BOOKINGS` in `config/env.ts` | `bookingsCreate.test.ts`, `bookingsConcurrency.test.ts`, `database.test.ts`, E2E-06 | Verified |
+| A6 Soft delete; deactivation blocked with HAS_ACTIVE_BOOKINGS; hidden from customers, visible to staff | `vehicle.service.ts`, `dealership.service.ts`, `slot.service.ts`, `vehicleAvailability.service.ts`; `isActive` filters in `catalog.service.ts` | `adminVehicles.test.ts`, `dealerships.test.ts`, `adminSlots.test.ts`, `catalog.test.ts`, E2E-10 | Verified |
+| A7 Reschedule to another available slot of the same vehicle; RESCHEDULED; history old and new slot; customer notified | `bookingAction.service.ts` (`rescheduleBooking`), `bookingHistory.service.ts` (`recordHistory` with `oldSlotId`, `newSlotId`) | `bookingActions.test.ts`, `notifications.test.ts`, E2E-04 | Verified |
+| A8 Every change writes history and a notification; e-mail failure never fails the action | `bookingTransition.ts`, `bookingHistory.service.ts`, `notificationService.ts` (`notify`, `deliverEmails`), `mailService.ts` | `bookingActions.test.ts`, `notifications.test.ts`, `mailService.test.ts`, E2E-02 | Verified |
+| A9 Customer views: pending, upcoming, completed, cancelled (with rejected), previous, all | `myBooking.service.ts` (`viewFilter`), `web/src/lib/myBookings.ts` | `myBookings.test.ts`, `web/tests/myBookings.test.ts`, E2E-03, E2E-07 | Verified |
+| A10 Security: bcrypt 12, password rules, httpOnly SameSite=Lax cookie, helmet, CORS, rate limits, zod, role checks, no cross-user access, no secrets in git | `utils/password.ts`, `validators/common.ts`, `utils/cookies.ts`, `app.ts` (helmet, CORS, `csrfGuard`), `middleware/rateLimiters.ts`, `loginThrottle.ts`, `config/jwtSecret.ts`, `.gitignore` | `security.test.ts`, `auth.test.ts`, `rateLimiters.test.ts`, `validators.test.ts`, `routeAudit.test.ts`, `health.test.ts`; review in [security.md](security.md) | Verified |
+| A11 Browser calls the web origin and Next.js proxies `/api` and `/uploads` | `web/next.config.mjs` (`rewrites`), `api/src/app.ts` (static `/uploads`) | E2E-01 to E2E-11 (every browser flow goes through the proxy), `health.test.ts` (uploads) | Verified |
+
+## Gaps found and fixed in Phase 27
+
+| Finding | Fix |
+| --- | --- |
+| Dead code: 34 exports that nothing imported, an unused barrel file `web/src/components/ui/index.ts`, and three unused helpers (`SkeletonText`, `isAdminPath`, `loginViaUi`) | Removed |
+| `api/package.json` had Prettier but no script to run it | Added `npm run format --workspace=api` |
+| `*.tsbuildinfo` and `next-env.d.ts` were not ignored by git | Added to `.gitignore` |
+| The demo data had only two pending bookings | Two more were added to `api/prisma/seed-data.ts` so the approve and reschedule demos have a queue |

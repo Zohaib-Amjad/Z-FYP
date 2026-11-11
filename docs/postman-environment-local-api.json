@@ -1,0 +1,31 @@
+{
+  "id": "prestige-local-api-on-port-4000-",
+  "name": "Prestige Local (API on port 4000)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "customerEmail",
+      "value": "amelia.hart@prestige.test",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "staffEmail",
+      "value": "staff1@prestige.test",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "demoPassword",
+      "value": "Prestige#2026",
+      "type": "secret",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

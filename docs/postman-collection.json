@@ -1,0 +1,2474 @@
+{
+  "info": {
+    "name": "Prestige Test Drive API (local)",
+    "description": "REST API for the Luxury Car Test-Drive Booking and Management System.\n\n**Conventions**\n- Every response uses an envelope: `{ \"success\": true, \"data\": ..., \"message\": \"optional\" }` on success and\n  `{ \"success\": false, \"error\": { \"code\": \"MACHINE_CODE\", \"message\": \"...\", \"details\": [{ \"field\": \"...\", \"message\": \"...\" }] } }` on failure.\n- Authentication is a JWT in an httpOnly, SameSite=Lax cookie named `td_session`, set by `POST /api/auth/login`\n  or `POST /api/auth/register`. Two roles exist: `CUSTOMER` and `STAFF`.\n- Request bodies, query strings and path parameters are validated; unknown fields are rejected with `422`.\n- All identifiers are UUIDs and all timestamps are ISO 8601 in UTC.\n- Lists are paginated with `page` (from 1) and `pageSize` (1 to 50, default 10).\n- Multi-value filters accept a comma-separated list (`status=PENDING,APPROVED`) or repeated parameters.\n- Error codes and their HTTP statuses are listed in `docs/api-error-codes.md`.\n\n**Try it:** sign in with `POST /api/auth/login` (demo accounts are printed by `npm run db:seed`), then call any\nother endpoint from this page; the browser sends the session cookie automatically.\n\nStart with the \"Sign in\" folder: choose the customer or the staff login, then use the other folders.\nRun `npm run db:seed` first; it creates the demo accounts used by this collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "customerEmail",
+      "value": "amelia.hart@prestige.test"
+    },
+    {
+      "key": "staffEmail",
+      "value": "staff1@prestige.test"
+    },
+    {
+      "key": "demoPassword",
+      "value": "Prestige#2026"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "vehicleId",
+      "value": ""
+    },
+    {
+      "key": "dealershipId",
+      "value": ""
+    },
+    {
+      "key": "slotId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "imageId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Sign in",
+      "item": [
+        {
+          "name": "Sign in as customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('signed in', () => pm.response.to.have.status(200));",
+                  "pm.test('role is CUSTOMER', () => pm.expect(pm.response.json().data.role).to.eql('CUSTOMER'));",
+                  "pm.collectionVariables.set('userId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{demoPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Signs in as the demo customer. Postman keeps the session cookie and sends it with every later request. Only one session exists at a time: signing in as the other role replaces it."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign in as staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('signed in', () => pm.response.to.have.status(200));",
+                  "pm.test('role is STAFF', () => pm.expect(pm.response.json().data.role).to.eql('STAFF'));",
+                  "pm.collectionVariables.set('userId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{demoPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Signs in as the demo staff. Postman keeps the session cookie and sends it with every later request. Only one session exists at a time: signing in as the other role replaces it."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Service and database health",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register a customer account and sign in",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Charlotte\",\n  \"lastName\": \"Ainsworth\",\n  \"email\": \"charlotte.ainsworth@example.com\",\n  \"password\": \"Velvet2026\",\n  \"confirmPassword\": \"Velvet2026\",\n  \"phone\": \"+44 7700 900777\",\n  \"drivingLicenseNumber\": \"AINSW901015C99XY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Always creates a `CUSTOMER`. A `role` in the body is ignored. Rate limited per IP and email."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign in (customers and staff)",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"amelia.hart@prestige.test\",\n  \"password\": \"Prestige#2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Sets the session cookie. Unknown email and wrong password give the same `INVALID_CREDENTIALS` answer.\nA deactivated account gets `ACCOUNT_DISABLED`. Rate limited per IP and email."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign out",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears the session cookie. Works even when nobody is signed in."
+          },
+          "response": []
+        },
+        {
+          "name": "The signed-in user",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Own profile (customers and staff)",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update own profile",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Amelia\",\n  \"lastName\": \"Hart-Lowe\",\n  \"phone\": \"+44 7700 900999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "Email cannot be changed (it is the login identity). Unknown fields, including `email`, are rejected.\n`drivingLicenseNumber` can be cleared with `null`."
+          },
+          "response": []
+        },
+        {
+          "name": "Change own password",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Velvet2026\",\n  \"newPassword\": \"Brand-new-2026\",\n  \"confirmPassword\": \"Brand-new-2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "password"
+              ]
+            },
+            "description": "A wrong current password returns `400 INVALID_CURRENT_PASSWORD`. Rate limited per user."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Browse, search and filter vehicles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('vehicleId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles?q=&manufacturer=Audi,Bentley&model=&vehicleType=SUV,COUPE&fuelType=ELECTRIC,PLUG_IN_HYBRID&transmission=&dealershipId=&city=&minYear=&maxYear=&minPrice=&maxPrice=&availableOnly=&sort=newest&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Free text over make, model, description and features. Every word must match."
+                },
+                {
+                  "key": "manufacturer",
+                  "value": "Audi,Bentley",
+                  "disabled": true,
+                  "description": "One or more manufacturers (comma-separated or repeated)."
+                },
+                {
+                  "key": "model",
+                  "value": "",
+                  "disabled": true,
+                  "description": "One or more models."
+                },
+                {
+                  "key": "vehicleType",
+                  "value": "SUV,COUPE",
+                  "disabled": true,
+                  "description": "One or more vehicle types."
+                },
+                {
+                  "key": "fuelType",
+                  "value": "ELECTRIC,PLUG_IN_HYBRID",
+                  "disabled": true,
+                  "description": "One or more fuel types."
+                },
+                {
+                  "key": "transmission",
+                  "value": "",
+                  "disabled": true,
+                  "description": "One or more transmissions."
+                },
+                {
+                  "key": "dealershipId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minYear",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "maxYear",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "availableOnly",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Only vehicles with at least one bookable future slot."
+                },
+                {
+                  "key": "sort",
+                  "value": "newest",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Public. Only active vehicles are returned. Unknown parameters and values are rejected."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter options currently present in the data",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/filters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "filters"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vehicle details",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            },
+            "description": "An inactive or unknown vehicle returns 404."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dealerships",
+      "item": [
+        {
+          "name": "Active dealerships",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data[0].id;",
+                  "  if (value) pm.collectionVariables.set('dealershipId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dealerships?vehicleId=&city=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dealerships"
+              ],
+              "query": [
+                {
+                  "key": "vehicleId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Only dealerships currently offering this vehicle."
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Public. At most 100 are returned."
+          },
+          "response": []
+        },
+        {
+          "name": "Dealership details",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dealerships/{{dealershipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dealerships",
+                "{{dealershipId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Slots",
+      "item": [
+        {
+          "name": "Available test-drive slots for a vehicle",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}/slots?dealershipId=&from=&to=&timeZone=Europe/London",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "{{vehicleId}}",
+                "slots"
+              ],
+              "query": [
+                {
+                  "key": "dealershipId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "from",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601 with offset. Defaults to now."
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601 with offset. Defaults to 14 days after `from`."
+                },
+                {
+                  "key": "timeZone",
+                  "value": "Europe/London",
+                  "disabled": true,
+                  "description": "IANA time zone used to group slots by date."
+                }
+              ]
+            },
+            "description": "Only genuinely bookable slots (active, in the future, unbooked, at an active dealership offering the vehicle).\nDefault range is the next 14 days, at most 60. Slots are grouped by calendar date in `timeZone`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Request a test drive (customers only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.id;",
+                  "  if (value) pm.collectionVariables.set('bookingId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": \"6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01\",\n  \"customerNote\": \"Interested in the manual gearbox.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
+            },
+            "description": "Runs in one transaction with row locks: of many simultaneous requests for one slot exactly one succeeds and\nthe others receive `SLOT_UNAVAILABLE`. Also enforces no overlapping bookings (`BOOKING_CONFLICT`) and at most\nthree active bookings (`ACTIVE_BOOKING_LIMIT`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Own bookings by view (customers only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('bookingId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/mine?view=pending&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "mine"
+              ],
+              "query": [
+                {
+                  "key": "view",
+                  "value": "pending",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Number of bookings in every view",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/mine/counts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "mine",
+                "counts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Slot summary for the booking confirmation page (customers only)",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "slots",
+                "{{slotId}}"
+              ]
+            },
+            "description": "Returns the vehicle, dealership and times of a slot, whether it can still be booked (`isAvailable`)\nand the cancellation window in hours. Slots of deactivated vehicles or dealerships are reported as not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Own booking with its status timeline",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}"
+              ]
+            },
+            "description": "Another customer's booking returns the same 404 as an unknown one."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel own booking",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"My plans have changed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            },
+            "description": "Allowed for pending, approved or rescheduled bookings whose slot starts at least `CANCELLATION_WINDOW_HOURS`\n(24) from now. Otherwise `CANCELLATION_WINDOW_PASSED` or `INVALID_STATUS_TRANSITION`. The booking's\n`canCancel` field is computed by the same rule."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Own notifications, newest first",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('notificationId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications?unreadOnly=&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unreadOnly",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Number of unread notifications",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark every own notification as read",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "read-all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark one notification as read (idempotent)",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Bookings",
+      "item": [
+        {
+          "name": "Filter and search all bookings (staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('bookingId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings?status=PENDING,APPROVED&dealershipId=&vehicleId=&customerId=&q=&dateFrom=&dateTo=&createdFrom=&createdTo=&upcomingOnly=&sort=slotStartAsc&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING,APPROVED",
+                  "disabled": true,
+                  "description": "One or more statuses (comma-separated or repeated)."
+                },
+                {
+                  "key": "dealershipId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "vehicleId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "customerId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Customer name, email or phone, or vehicle make or model."
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Slot start, inclusive. ISO 8601 with offset."
+                },
+                {
+                  "key": "dateTo",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Slot start, inclusive. ISO 8601 with offset."
+                },
+                {
+                  "key": "createdFrom",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "createdTo",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "upcomingOnly",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "slotStartAsc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Full booking with customer profile and history (staff)",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve a pending booking",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staffNote\": \"Please bring your driving licence.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "approve"
+              ]
+            },
+            "description": "PENDING to APPROVED. Writes history, notifies the customer, then attempts an email."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject a pending booking",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"The vehicle is reserved for a press event on this date.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "reject"
+              ]
+            },
+            "description": "PENDING to REJECTED. The slot becomes bookable again."
+          },
+          "response": []
+        },
+        {
+          "name": "Move a booking to another slot of the same vehicle",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newSlotId\": \"9f3d1b7a-4c2e-4e8b-8a55-0c6d2e4f6a18\",\n  \"note\": \"Vehicle service.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/reschedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "reschedule"
+              ]
+            },
+            "description": "From PENDING, APPROVED or RESCHEDULED. The new slot must be free and in the future; the customer's other\nbookings may not overlap it. History records the old and new slot."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel an active booking (any time)",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"The vehicle has been sold.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete a booking whose slot has started",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staffNote\": \"Customer enjoyed the drive.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "complete"
+              ]
+            },
+            "description": "From APPROVED or RESCHEDULED, only once the slot start is in the past."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Dashboard",
+      "item": [
+        {
+          "name": "Dashboard counts and the bookings that need attention",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dashboard/summary?timeZone=Europe/London",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "timeZone",
+                  "value": "Europe/London",
+                  "disabled": true,
+                  "description": "IANA time zone used for \"today\", \"this month\" and the trend's days."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bookings created per day, zero-filled",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dashboard/bookings-trend?days=14&timeZone=Europe/London",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "bookings-trend"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "14",
+                  "disabled": true
+                },
+                {
+                  "key": "timeZone",
+                  "value": "Europe/London",
+                  "disabled": true,
+                  "description": "IANA time zone used for \"today\", \"this month\" and the trend's days."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Most requested vehicles",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dashboard/top-vehicles?days=30&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "top-vehicles"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Vehicles",
+      "item": [
+        {
+          "name": "All vehicles including inactive (staff)",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles?q=&manufacturer=&vehicleType=&fuelType=&isActive=&dealershipId=&sortBy=createdAt&sortOrder=asc&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "manufacturer",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "vehicleType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "fuelType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "dealershipId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a vehicle",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"manufacturer\": \"Aston Martin\",\n  \"model\": \"Vantage\",\n  \"year\": 2025,\n  \"vehicleType\": \"SPORTS\",\n  \"fuelType\": \"PETROL\",\n  \"transmission\": \"AUTOMATIC\",\n  \"engine\": \"4.0L twin-turbo V8\",\n  \"powerHp\": 656,\n  \"topSpeedKmh\": 325,\n  \"acceleration0to100\": 3.5,\n  \"seats\": 2,\n  \"color\": \"Lunar White\",\n  \"priceFrom\": 165000,\n  \"description\": \"A razor-sharp British sports car with a muscular V8.\",\n  \"features\": [\n    \"Launch control\",\n    \"Bowers & Wilkins audio\"\n  ],\n  \"availabilityNote\": \"Available by appointment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Full vehicle record with images and dealerships",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update a vehicle (partial)",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"Racing Yellow\",\n  \"priceFrom\": 150000,\n  \"features\": [\n    \"Sport Chrono\",\n    \"Rear-axle steering\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            },
+            "description": "Optional fields can be cleared with `null`."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate a vehicle",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Blocked with `409 HAS_ACTIVE_BOOKINGS` (and the count) while future active bookings exist."
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivate a vehicle",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "activate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dealerships offering the vehicle",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/dealerships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "dealerships"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace the dealerships offering the vehicle",
+          "event": [],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealerships\": [\n    {\n      \"dealershipId\": \"3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34\",\n      \"isAvailable\": true\n    },\n    {\n      \"dealershipId\": \"5a7d2c91-1e3f-4b8a-9c6d-2f4e8a0b1c53\",\n      \"isAvailable\": false\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/dealerships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "dealerships"
+              ]
+            },
+            "description": "Applied in one transaction or not at all. Withdrawing a dealership (omitting it or marking it unavailable) is\nrefused while it has future active bookings (`HAS_ACTIVE_BOOKINGS`) or active upcoming slots (`CONFLICT`).\nA dealership that already has slot history is kept as unavailable instead of being deleted."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload vehicle images",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPEG, PNG or WebP; up to 8 files of 5 MB"
+                },
+                {
+                  "key": "altText",
+                  "type": "text",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "images"
+              ]
+            },
+            "description": "Multipart form data. Field `images`, up to 8 files per request, at most 5 MB each, JPEG, PNG or WebP\n(checked by declared type and by the file's first bytes). A vehicle can hold 12 images; the first becomes\nthe primary image. Files are served from `/uploads/vehicles/{vehicleId}/`. Failures use `UPLOAD_INVALID`."
+          },
+          "response": []
+        },
+        {
+          "name": "Update an image's alt text, order or primary flag",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"altText\": \"Rear three-quarter view\",\n  \"isPrimary\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "images",
+                "{{imageId}}"
+              ]
+            },
+            "description": "Exactly one image per vehicle is primary. The primary flag cannot be unset directly; set another image as primary instead."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete an image (row and file)",
+          "event": [],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/vehicles/{{vehicleId}}/images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "images",
+                "{{imageId}}"
+              ]
+            },
+            "description": "Deleting the primary image promotes the next one."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Dealerships",
+      "item": [
+        {
+          "name": "All dealerships including inactive (staff)",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships?q=&isActive=&sortBy=name&sortOrder=asc&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a dealership",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prestige Edinburgh\",\n  \"address\": \"9 Charlotte Square\",\n  \"city\": \"Edinburgh\",\n  \"phone\": \"+44 131 496 3000\",\n  \"email\": \"edinburgh@prestige.test\",\n  \"openingHours\": \"Mon-Fri 09:00-17:30, Sat 09:00-13:00\",\n  \"description\": \"A refined Georgian-townhouse showroom.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships"
+              ]
+            },
+            "description": "Name must be unique within the city (case-insensitive); otherwise `409 CONFLICT`."
+          },
+          "response": []
+        },
+        {
+          "name": "Dealership with its upcoming active booking count",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update a dealership (partial)",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+44 20 7946 1999\",\n  \"openingHours\": \"Mon-Sat 10:00-19:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate a dealership",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Blocked with `409 HAS_ACTIVE_BOOKINGS` (and the count) while future active bookings exist at it."
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivate a dealership",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}",
+                "activate"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Slots",
+      "item": [
+        {
+          "name": "List slots with their active booking (staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('slotId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots?dealershipId=&vehicleId=&from=&to=&isActive=&hasBooking=&sortOrder=asc&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots"
+              ],
+              "query": [
+                {
+                  "key": "dealershipId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "vehicleId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "hasBooking",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Whether the slot has an active booking."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create one slot",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealershipId\": \"3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34\",\n  \"vehicleId\": \"7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46\",\n  \"startAt\": \"2030-03-12T10:00:00+00:00\",\n  \"endAt\": \"2030-03-12T11:00:00+00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots"
+              ]
+            },
+            "description": "Must start in the future and last 15 to 240 minutes; the vehicle must be offered at the dealership.\nA clash with another active slot of the same vehicle returns `409 SLOT_OVERLAP` naming the clashing slot."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate many slots (with dry run)",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealershipId\": \"3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34\",\n  \"vehicleId\": \"7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46\",\n  \"dateFrom\": \"2030-03-11\",\n  \"dateTo\": \"2030-03-17\",\n  \"daysOfWeek\": [\n    \"MON\",\n    \"WED\",\n    \"FRI\"\n  ],\n  \"dailyStartTime\": \"09:00\",\n  \"dailyEndTime\": \"12:00\",\n  \"durationMinutes\": 60,\n  \"breakMinutes\": 30,\n  \"timeZone\": \"Europe/London\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots/bulk?dryRun=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots",
+                "bulk"
+              ],
+              "query": [
+                {
+                  "key": "dryRun",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Calendar dates, 24-hour times and weekdays are interpreted in `timeZone` (daylight saving handled).\n`?dryRun=true` previews without writing. Candidates that overlap existing slots or lie in the past are\nskipped and reported; the rest are created in one transaction."
+          },
+          "response": []
+        },
+        {
+          "name": "One slot",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change a slot's times",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startAt\": \"2030-03-12T14:00:00+00:00\",\n  \"endAt\": \"2030-03-12T15:00:00+00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots",
+                "{{slotId}}"
+              ]
+            },
+            "description": "Blocked with `409 HAS_ACTIVE_BOOKINGS` when the slot has an active booking (reschedule the booking instead)\nand with `409 SLOT_IN_PAST` once the slot has started."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate a slot",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots/{{slotId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots",
+                "{{slotId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Blocked with `409 HAS_ACTIVE_BOOKINGS` while the slot has an active booking."
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivate a slot",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/slots/{{slotId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "slots",
+                "{{slotId}}",
+                "activate"
+              ]
+            },
+            "description": "Re-checks overlaps; a clash returns `409 SLOT_OVERLAP`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Customers",
+      "item": [
+        {
+          "name": "Search customers (staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  const value = body.data.items[0].id;",
+                  "  if (value) pm.collectionVariables.set('customerId', value);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/customers?q=&isActive=&sortBy=createdAt&sortOrder=asc&page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Name, email or phone. Every word must match."
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Customer profile with a bookings summary",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "customers",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate or deactivate a customer",
+          "event": [],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "customers",
+                "{{customerId}}",
+                "status"
+              ]
+            },
+            "description": "Deactivating cancels the customer's future active bookings (reason \"Account deactivated\", cancelled by\nstaff), each with history, an in-app notification and an email attempt, all in one transaction.\nCustomers are never deleted."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Staff",
+      "item": [
+        {
+          "name": "List staff accounts",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/staff?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "staff"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create another staff account",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Marcus\",\n  \"lastName\": \"Ashworth\",\n  \"email\": \"marcus.ashworth@prestige.test\",\n  \"password\": \"Temporary2026\",\n  \"phone\": \"+44 20 7946 0102\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/staff",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "staff"
+              ]
+            },
+            "description": "Staff accounts cannot self-register. The password is a temporary one."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

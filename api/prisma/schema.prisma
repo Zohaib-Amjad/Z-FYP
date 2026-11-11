@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  COUPE
+  CONVERTIBLE
+  HATCHBACK
+  SPORTS
+  GRAND_TOURER
+  MPV
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  PLUG_IN_HYBRID
+  ELECTRIC
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+  DUAL_CLUTCH
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+  RESCHEDULED
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  BOOKING_RESCHEDULED
+  BOOKING_CANCELLED
+  BOOKING_COMPLETED
+}
+
+model User {
+  id                   String                 @id @default(uuid()) @map("id") @db.Uuid
+  email                String                 @unique @map("email")
+  passwordHash         String                 @map("password_hash")
+  role                 Role                   @default(CUSTOMER) @map("role")
+  firstName            String                 @map("first_name")
+  lastName             String                 @map("last_name")
+  phone                String                 @map("phone")
+  drivingLicenseNumber String?                @map("driving_license_number")
+  isActive             Boolean                @default(true) @map("is_active")
+  lastLoginAt          DateTime?              @map("last_login_at") @db.Timestamptz
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  bookings             Booking[]
+  statusChanges        BookingStatusHistory[]
+  notifications        Notification[]
+  createdSlots         TimeSlot[]
+
+  @@map("users")
+}
+
+model Dealership {
+  id           String              @id @default(uuid()) @map("id") @db.Uuid
+  name         String              @map("name")
+  address      String              @map("address")
+  city         String              @map("city")
+  phone        String              @map("phone")
+  email        String              @map("email")
+  openingHours String              @map("opening_hours")
+  description  String?             @map("description")
+  isActive     Boolean             @default(true) @map("is_active")
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicles     DealershipVehicle[]
+  timeSlots    TimeSlot[]
+
+  @@map("dealerships")
+}
+
+model Vehicle {
+  id                 String              @id @default(uuid()) @map("id") @db.Uuid
+  manufacturer       String              @map("manufacturer")
+  model              String              @map("model")
+  year               Int                 @map("year")
+  vehicleType        VehicleType         @map("vehicle_type")
+  fuelType           FuelType            @map("fuel_type")
+  transmission       Transmission        @map("transmission")
+  engine             String              @map("engine")
+  powerHp            Int                 @map("power_hp")
+  topSpeedKmh        Int?                @map("top_speed_kmh")
+  acceleration0to100 Decimal?            @map("acceleration_0_to_100") @db.Decimal(4, 2)
+  seats              Int                 @map("seats")
+  color              String              @map("color")
+  priceFrom          Decimal?            @map("price_from") @db.Decimal(12, 2)
+  description        String              @map("description")
+  features           String[]            @map("features")
+  availabilityNote   String?             @map("availability_note")
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  images             VehicleImage[]
+  dealerships        DealershipVehicle[]
+  timeSlots          TimeSlot[]
+
+  @@index([manufacturer, model])
+  @@index([vehicleType])
+  @@index([fuelType])
+  @@index([isActive])
+  @@map("vehicles")
+}
+
+model VehicleImage {
+  id        String   @id @default(uuid()) @map("id") @db.Uuid
+  vehicleId String   @map("vehicle_id") @db.Uuid
+  url       String   @map("url")
+  altText   String   @map("alt_text")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@map("vehicle_images")
+}
+
+model DealershipVehicle {
+  dealershipId String     @map("dealership_id") @db.Uuid
+  vehicleId    String     @map("vehicle_id") @db.Uuid
+  isAvailable  Boolean    @default(true) @map("is_available")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  timeSlots    TimeSlot[]
+
+  @@id([dealershipId, vehicleId])
+  @@map("dealership_vehicles")
+}
+
+model TimeSlot {
+  id           String            @id @default(uuid()) @map("id") @db.Uuid
+  dealershipId String            @map("dealership_id") @db.Uuid
+  vehicleId    String            @map("vehicle_id") @db.Uuid
+  startAt      DateTime          @map("start_at") @db.Timestamptz
+  endAt        DateTime          @map("end_at") @db.Timestamptz
+  isActive     Boolean           @default(true) @map("is_active")
+  createdById  String            @map("created_by_id") @db.Uuid
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  dealership   Dealership        @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  dealershipVehicle DealershipVehicle @relation(fields: [dealershipId, vehicleId], references: [dealershipId, vehicleId], onDelete: Cascade)
+  createdBy    User              @relation(fields: [createdById], references: [id])
+  bookings     Booking[]
+
+  @@index([vehicleId, startAt])
+  @@index([dealershipId, startAt])
+  @@index([startAt])
+  @@map("time_slots")
+}
+
+model Booking {
+  id                 String                 @id @default(uuid()) @map("id") @db.Uuid
+  customerId         String                 @map("customer_id") @db.Uuid
+  slotId             String                 @map("slot_id") @db.Uuid
+  status             BookingStatus          @default(PENDING) @map("status")
+  customerNote       String?                @map("customer_note")
+  staffNote          String?                @map("staff_note")
+  rejectionReason    String?                @map("rejection_reason")
+  cancellationReason String?                @map("cancellation_reason")
+  cancelledBy        Role?                  @map("cancelled_by")
+  approvedAt         DateTime?              @map("approved_at") @db.Timestamptz
+  completedAt        DateTime?              @map("completed_at") @db.Timestamptz
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  customer           User                   @relation(fields: [customerId], references: [id])
+  slot               TimeSlot               @relation(fields: [slotId], references: [id])
+  statusHistory      BookingStatusHistory[]
+  notifications      Notification[]
+
+  @@index([customerId, status])
+  @@index([status, createdAt])
+  @@index([slotId])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id          String         @id @default(uuid()) @map("id") @db.Uuid
+  bookingId   String         @map("booking_id") @db.Uuid
+  fromStatus  BookingStatus? @map("from_status")
+  toStatus    BookingStatus  @map("to_status")
+  action      String         @map("action")
+  note        String?        @map("note")
+  oldSlotId   String?        @map("old_slot_id") @db.Uuid
+  newSlotId   String?        @map("new_slot_id") @db.Uuid
+  changedById String         @map("changed_by_id") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  changedBy   User           @relation(fields: [changedById], references: [id])
+
+  @@index([bookingId])
+  @@index([toStatus, createdAt])
+  @@map("booking_status_history")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @map("id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  bookingId String?          @map("booking_id") @db.Uuid
+  type      NotificationType @map("type")
+  title     String           @map("title")
+  message   String           @map("message")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking   Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}

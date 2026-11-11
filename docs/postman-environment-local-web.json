@@ -1,0 +1,31 @@
+{
+  "id": "prestige-local-web-proxy-on-port-3000-",
+  "name": "Prestige Local (web proxy on port 3000)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "customerEmail",
+      "value": "amelia.hart@prestige.test",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "staffEmail",
+      "value": "staff1@prestige.test",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "demoPassword",
+      "value": "Prestige#2026",
+      "type": "secret",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -1,0 +1,2868 @@
+openapi: 3.0.3
+info:
+  title: Prestige Test Drive API
+  version: 1.0.0
+  description: |
+    REST API for the Luxury Car Test-Drive Booking and Management System.
+
+    **Conventions**
+    - Every response uses an envelope: `{ "success": true, "data": ..., "message": "optional" }` on success and
+      `{ "success": false, "error": { "code": "MACHINE_CODE", "message": "...", "details": [{ "field": "...", "message": "..." }] } }` on failure.
+    - Authentication is a JWT in an httpOnly, SameSite=Lax cookie named `td_session`, set by `POST /api/auth/login`
+      or `POST /api/auth/register`. Two roles exist: `CUSTOMER` and `STAFF`.
+    - Request bodies, query strings and path parameters are validated; unknown fields are rejected with `422`.
+    - All identifiers are UUIDs and all timestamps are ISO 8601 in UTC.
+    - Lists are paginated with `page` (from 1) and `pageSize` (1 to 50, default 10).
+    - Multi-value filters accept a comma-separated list (`status=PENDING,APPROVED`) or repeated parameters.
+    - Error codes and their HTTP statuses are listed in `docs/api-error-codes.md`.
+
+    **Try it:** sign in with `POST /api/auth/login` (demo accounts are printed by `npm run db:seed`), then call any
+    other endpoint from this page; the browser sends the session cookie automatically.
+servers:
+  - url: http://localhost:4000
+    description: API server directly
+  - url: http://localhost:3000
+    description: Through the web application's proxy (same origin as the browser)
+tags:
+  - name: Health
+  - name: Auth
+  - name: Profile
+  - name: Catalog
+  - name: Dealerships
+  - name: Slots
+  - name: Bookings
+  - name: Notifications
+  - name: Admin - Bookings
+  - name: Admin - Dashboard
+  - name: Admin - Vehicles
+  - name: Admin - Dealerships
+  - name: Admin - Slots
+  - name: Admin - Customers
+  - name: Admin - Staff
+security:
+  - cookieAuth: []
+paths:
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Service and database health
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthResponse'
+        '503':
+          description: The database is unavailable.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  # ---------------------------------------------------------------- Auth
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a customer account and sign in
+      description: Always creates a `CUSTOMER`. A `role` in the body is ignored. Rate limited per IP and email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+            example:
+              firstName: Charlotte
+              lastName: Ainsworth
+              email: charlotte.ainsworth@example.com
+              password: Velvet2026
+              confirmPassword: Velvet2026
+              phone: '+44 7700 900777'
+              drivingLicenseNumber: AINSW901015C99XY
+      responses:
+        '201':
+          $ref: '#/components/responses/UserCreatedResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in (customers and staff)
+      description: |
+        Sets the session cookie. Unknown email and wrong password give the same `INVALID_CREDENTIALS` answer.
+        A deactivated account gets `ACCOUNT_DISABLED`. Rate limited per IP and email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            examples:
+              customer:
+                summary: Demo customer
+                value: { email: amelia.hart@prestige.test, password: 'Prestige#2026' }
+              staff:
+                summary: Demo staff member
+                value: { email: staff1@prestige.test, password: 'Prestige#2026' }
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/AccountDisabled'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Sign out
+      description: Clears the session cookie. Works even when nobody is signed in.
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/NullResponse'
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: The signed-in user
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/AccountDisabled'
+
+  # ------------------------------------------------------------- Profile
+  /api/profile:
+    get:
+      tags: [Profile]
+      summary: Own profile (customers and staff)
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    patch:
+      tags: [Profile]
+      summary: Update own profile
+      description: |
+        Email cannot be changed (it is the login identity). Unknown fields, including `email`, are rejected.
+        `drivingLicenseNumber` can be cleared with `null`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+            example: { firstName: Amelia, lastName: Hart-Lowe, phone: '+44 7700 900999' }
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/profile/password:
+    patch:
+      tags: [Profile]
+      summary: Change own password
+      description: A wrong current password returns `400 INVALID_CURRENT_PASSWORD`. Rate limited per user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangePasswordRequest' }
+            example: { currentPassword: Velvet2026, newPassword: Brand-new-2026, confirmPassword: Brand-new-2026 }
+      responses:
+        '200':
+          $ref: '#/components/responses/NullResponse'
+        '400':
+          description: The current password is incorrect (`INVALID_CURRENT_PASSWORD`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  # ------------------------------------------------------------- Catalog
+  /api/vehicles:
+    get:
+      tags: [Catalog]
+      summary: Browse, search and filter vehicles
+      description: Public. Only active vehicles are returned. Unknown parameters and values are rejected.
+      security: []
+      parameters:
+        - { name: q, in: query, description: 'Free text over make, model, description and features. Every word must match.', schema: { type: string, maxLength: 100 } }
+        - { name: manufacturer, in: query, description: 'One or more manufacturers (comma-separated or repeated).', schema: { type: string }, example: 'Audi,Bentley' }
+        - { name: model, in: query, description: 'One or more models.', schema: { type: string } }
+        - { name: vehicleType, in: query, description: 'One or more vehicle types.', schema: { type: string }, example: 'SUV,COUPE' }
+        - { name: fuelType, in: query, description: 'One or more fuel types.', schema: { type: string }, example: 'ELECTRIC,PLUG_IN_HYBRID' }
+        - { name: transmission, in: query, description: 'One or more transmissions.', schema: { type: string } }
+        - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: minYear, in: query, schema: { type: integer } }
+        - { name: maxYear, in: query, schema: { type: integer } }
+        - { name: minPrice, in: query, schema: { type: number } }
+        - { name: maxPrice, in: query, schema: { type: number } }
+        - { name: availableOnly, in: query, description: 'Only vehicles with at least one bookable future slot.', schema: { type: boolean } }
+        - { name: sort, in: query, schema: { type: string, enum: [newest, priceAsc, priceDesc, manufacturerAsc, powerDesc], default: newest } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogPageResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/vehicles/filters:
+    get:
+      tags: [Catalog]
+      summary: Filter options currently present in the data
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogFiltersResponse'
+  /api/vehicles/{id}:
+    get:
+      tags: [Catalog]
+      summary: Vehicle details
+      description: An inactive or unknown vehicle returns 404.
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogVehicleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/vehicles/{vehicleId}/slots:
+    get:
+      tags: [Slots]
+      summary: Available test-drive slots for a vehicle
+      description: |
+        Only genuinely bookable slots (active, in the future, unbooked, at an active dealership offering the vehicle).
+        Default range is the next 14 days, at most 60. Slots are grouped by calendar date in `timeZone`.
+      security: []
+      parameters:
+        - { name: vehicleId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
+        - { name: from, in: query, description: 'ISO 8601 with offset. Defaults to now.', schema: { type: string, format: date-time } }
+        - { name: to, in: query, description: 'ISO 8601 with offset. Defaults to 14 days after `from`.', schema: { type: string, format: date-time } }
+        - { name: timeZone, in: query, description: 'IANA time zone used to group slots by date.', schema: { type: string, default: UTC }, example: Europe/London }
+      responses:
+        '200':
+          $ref: '#/components/responses/SlotAvailabilityResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # --------------------------------------------------------- Dealerships
+  /api/dealerships:
+    get:
+      tags: [Dealerships]
+      summary: Active dealerships
+      description: Public. At most 100 are returned.
+      security: []
+      parameters:
+        - { name: vehicleId, in: query, description: 'Only dealerships currently offering this vehicle.', schema: { type: string, format: uuid } }
+        - { name: city, in: query, schema: { type: string } }
+      responses:
+        '200':
+          $ref: '#/components/responses/DealershipListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/dealerships/{id}:
+    get:
+      tags: [Dealerships]
+      summary: Dealership details
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/DealershipResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ------------------------------------------------------------ Bookings
+  /api/bookings:
+    post:
+      tags: [Bookings]
+      summary: Request a test drive (customers only)
+      description: |
+        Runs in one transaction with row locks: of many simultaneous requests for one slot exactly one succeeds and
+        the others receive `SLOT_UNAVAILABLE`. Also enforces no overlapping bookings (`BOOKING_CONFLICT`) and at most
+        three active bookings (`ACTIVE_BOOKING_LIMIT`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookingRequest' }
+            example: { slotId: 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01, customerNote: Interested in the manual gearbox. }
+      responses:
+        '201':
+          $ref: '#/components/responses/BookingCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/bookings/mine:
+    get:
+      tags: [Bookings]
+      summary: Own bookings by view (customers only)
+      parameters:
+        - { name: view, in: query, schema: { type: string, enum: [pending, upcoming, completed, cancelled, previous, all], default: all } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/MyBookingPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/bookings/mine/counts:
+    get:
+      tags: [Bookings]
+      summary: Number of bookings in every view
+      responses:
+        '200':
+          $ref: '#/components/responses/MyBookingCountsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/bookings/slots/{id}:
+    get:
+      tags: [Bookings]
+      summary: Slot summary for the booking confirmation page (customers only)
+      description: |
+        Returns the vehicle, dealership and times of a slot, whether it can still be booked (`isAvailable`)
+        and the cancellation window in hours. Slots of deactivated vehicles or dealerships are reported as not found.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/SlotPreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/bookings/{id}:
+    get:
+      tags: [Bookings]
+      summary: Own booking with its status timeline
+      description: Another customer's booking returns the same 404 as an unknown one.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/MyBookingDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/bookings/{id}/cancel:
+    patch:
+      tags: [Bookings]
+      summary: Cancel own booking
+      description: |
+        Allowed for pending, approved or rescheduled bookings whose slot starts at least `CANCELLATION_WINDOW_HOURS`
+        (24) from now. Otherwise `CANCELLATION_WINDOW_PASSED` or `INVALID_STATUS_TRANSITION`. The booking's
+        `canCancel` field is computed by the same rule.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CancelMyBookingRequest' }
+            example: { reason: My plans have changed. }
+      responses:
+        '200':
+          $ref: '#/components/responses/MyBookingDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ------------------------------------------------------- Notifications
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      summary: Own notifications, newest first
+      parameters:
+        - { name: unreadOnly, in: query, schema: { type: boolean } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Number of unread notifications
+      responses:
+        '200':
+          $ref: '#/components/responses/UnreadCountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /api/notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Mark every own notification as read
+      responses:
+        '200':
+          $ref: '#/components/responses/ReadAllResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /api/notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark one notification as read (idempotent)
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ---------------------------------------------------- Admin - Bookings
+  /api/admin/bookings:
+    get:
+      tags: [Admin - Bookings]
+      summary: Filter and search all bookings (staff)
+      parameters:
+        - { name: status, in: query, description: 'One or more statuses (comma-separated or repeated).', schema: { type: string }, example: 'PENDING,APPROVED' }
+        - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
+        - { name: vehicleId, in: query, schema: { type: string, format: uuid } }
+        - { name: customerId, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, description: 'Customer name, email or phone, or vehicle make or model.', schema: { type: string, maxLength: 100 } }
+        - { name: dateFrom, in: query, description: 'Slot start, inclusive. ISO 8601 with offset.', schema: { type: string, format: date-time } }
+        - { name: dateTo, in: query, description: 'Slot start, inclusive. ISO 8601 with offset.', schema: { type: string, format: date-time } }
+        - { name: createdFrom, in: query, schema: { type: string, format: date-time } }
+        - { name: createdTo, in: query, schema: { type: string, format: date-time } }
+        - { name: upcomingOnly, in: query, schema: { type: boolean } }
+        - { name: sort, in: query, schema: { type: string, enum: [slotStartAsc, slotStartDesc, createdDesc], default: createdDesc } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminBookingPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}:
+    get:
+      tags: [Admin - Bookings]
+      summary: Full booking with customer profile and history (staff)
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminBookingDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}/approve:
+    patch:
+      tags: [Admin - Bookings]
+      summary: Approve a pending booking
+      description: PENDING to APPROVED. Writes history, notifies the customer, then attempts an email.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApproveRequest' }
+            example: { staffNote: Please bring your driving licence. }
+      responses:
+        '200':
+          $ref: '#/components/responses/BookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/InvalidTransition'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}/reject:
+    patch:
+      tags: [Admin - Bookings]
+      summary: Reject a pending booking
+      description: PENDING to REJECTED. The slot becomes bookable again.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RejectRequest' }
+            example: { rejectionReason: The vehicle is reserved for a press event on this date. }
+      responses:
+        '200':
+          $ref: '#/components/responses/BookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/InvalidTransition'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}/reschedule:
+    patch:
+      tags: [Admin - Bookings]
+      summary: Move a booking to another slot of the same vehicle
+      description: |
+        From PENDING, APPROVED or RESCHEDULED. The new slot must be free and in the future; the customer's other
+        bookings may not overlap it. History records the old and new slot.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RescheduleRequest' }
+            example: { newSlotId: 9f3d1b7a-4c2e-4e8b-8a55-0c6d2e4f6a18, note: Vehicle service. }
+      responses:
+        '200':
+          $ref: '#/components/responses/BookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}/cancel:
+    patch:
+      tags: [Admin - Bookings]
+      summary: Cancel an active booking (any time)
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StaffCancelRequest' }
+            example: { cancellationReason: The vehicle has been sold. }
+      responses:
+        '200':
+          $ref: '#/components/responses/BookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/InvalidTransition'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/bookings/{id}/complete:
+    patch:
+      tags: [Admin - Bookings]
+      summary: Complete a booking whose slot has started
+      description: From APPROVED or RESCHEDULED, only once the slot start is in the past.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteRequest' }
+            example: { staffNote: Customer enjoyed the drive. }
+      responses:
+        '200':
+          $ref: '#/components/responses/BookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/InvalidTransition'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # --------------------------------------------------- Admin - Dashboard
+  /api/admin/dashboard/summary:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Dashboard counts and the bookings that need attention
+      parameters:
+        - { $ref: '#/components/parameters/TimeZone' }
+      responses:
+        '200':
+          $ref: '#/components/responses/DashboardSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dashboard/bookings-trend:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Bookings created per day, zero-filled
+      parameters:
+        - { name: days, in: query, schema: { type: integer, minimum: 1, maximum: 90, default: 14 } }
+        - { $ref: '#/components/parameters/TimeZone' }
+      responses:
+        '200':
+          $ref: '#/components/responses/TrendResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dashboard/top-vehicles:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Most requested vehicles
+      parameters:
+        - { name: days, in: query, schema: { type: integer, minimum: 1, maximum: 365, default: 30 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 20, default: 5 } }
+      responses:
+        '200':
+          $ref: '#/components/responses/TopVehiclesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ---------------------------------------------------- Admin - Vehicles
+  /api/admin/vehicles:
+    get:
+      tags: [Admin - Vehicles]
+      summary: All vehicles including inactive (staff)
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: manufacturer, in: query, schema: { type: string } }
+        - { name: vehicleType, in: query, schema: { $ref: '#/components/schemas/VehicleType' } }
+        - { name: fuelType, in: query, schema: { $ref: '#/components/schemas/FuelType' } }
+        - { name: isActive, in: query, schema: { type: boolean } }
+        - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
+        - { name: sortBy, in: query, schema: { type: string, enum: [createdAt, manufacturer, model, year, powerHp, priceFrom], default: createdAt } }
+        - { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc], default: desc } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminVehiclePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Admin - Vehicles]
+      summary: Create a vehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateVehicleRequest' }
+            example:
+              manufacturer: Aston Martin
+              model: Vantage
+              year: 2025
+              vehicleType: SPORTS
+              fuelType: PETROL
+              transmission: AUTOMATIC
+              engine: 4.0L twin-turbo V8
+              powerHp: 656
+              topSpeedKmh: 325
+              acceleration0to100: 3.5
+              seats: 2
+              color: Lunar White
+              priceFrom: 165000
+              description: A razor-sharp British sports car with a muscular V8.
+              features: [Launch control, Bowers & Wilkins audio]
+              availabilityNote: Available by appointment
+      responses:
+        '201':
+          $ref: '#/components/responses/AdminVehicleCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/vehicles/{id}:
+    get:
+      tags: [Admin - Vehicles]
+      summary: Full vehicle record with images and dealerships
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminVehicleDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags: [Admin - Vehicles]
+      summary: Update a vehicle (partial)
+      description: Optional fields can be cleared with `null`.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateVehicleRequest' }
+            example: { color: Racing Yellow, priceFrom: 150000, features: [Sport Chrono, Rear-axle steering] }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminVehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/vehicles/{id}/deactivate:
+    patch:
+      tags: [Admin - Vehicles]
+      summary: Deactivate a vehicle
+      description: Blocked with `409 HAS_ACTIVE_BOOKINGS` (and the count) while future active bookings exist.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminVehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/HasActiveBookings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/vehicles/{id}/activate:
+    patch:
+      tags: [Admin - Vehicles]
+      summary: Reactivate a vehicle
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminVehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/vehicles/{id}/dealerships:
+    get:
+      tags: [Admin - Vehicles]
+      summary: Dealerships offering the vehicle
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/VehicleDealershipsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags: [Admin - Vehicles]
+      summary: Replace the dealerships offering the vehicle
+      description: |
+        Applied in one transaction or not at all. Withdrawing a dealership (omitting it or marking it unavailable) is
+        refused while it has future active bookings (`HAS_ACTIVE_BOOKINGS`) or active upcoming slots (`CONFLICT`).
+        A dealership that already has slot history is kept as unavailable instead of being deleted.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReplaceDealershipsRequest' }
+            example:
+              dealerships:
+                - { dealershipId: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, isAvailable: true }
+                - { dealershipId: 5a7d2c91-1e3f-4b8a-9c6d-2f4e8a0b1c53, isAvailable: false }
+      responses:
+        '200':
+          $ref: '#/components/responses/VehicleDealershipsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/HasActiveBookings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/vehicles/{id}/images:
+    post:
+      tags: [Admin - Vehicles]
+      summary: Upload vehicle images
+      description: |
+        Multipart form data. Field `images`, up to 8 files per request, at most 5 MB each, JPEG, PNG or WebP
+        (checked by declared type and by the file's first bytes). A vehicle can hold 12 images; the first becomes
+        the primary image. Files are served from `/uploads/vehicles/{vehicleId}/`. Failures use `UPLOAD_INVALID`.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  maxItems: 8
+                  items: { type: string, format: binary }
+                altText:
+                  type: string
+                  maxLength: 160
+                  description: Alt text for the uploaded images (defaults to the vehicle name).
+      responses:
+        '201':
+          $ref: '#/components/responses/ImageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UploadInvalid'
+  /api/admin/vehicles/{id}/images/{imageId}:
+    patch:
+      tags: [Admin - Vehicles]
+      summary: Update an image's alt text, order or primary flag
+      description: Exactly one image per vehicle is primary. The primary flag cannot be unset directly; set another image as primary instead.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+        - { $ref: '#/components/parameters/ImageIdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateImageRequest' }
+            example: { altText: Rear three-quarter view, isPrimary: true }
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Admin - Vehicles]
+      summary: Delete an image (row and file)
+      description: Deleting the primary image promotes the next one.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+        - { $ref: '#/components/parameters/ImageIdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # -------------------------------------------------- Admin - Dealerships
+  /api/admin/dealerships:
+    get:
+      tags: [Admin - Dealerships]
+      summary: All dealerships including inactive (staff)
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: isActive, in: query, schema: { type: boolean } }
+        - { name: sortBy, in: query, schema: { type: string, enum: [name, city, createdAt], default: name } }
+        - { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc], default: asc } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Admin - Dealerships]
+      summary: Create a dealership
+      description: Name must be unique within the city (case-insensitive); otherwise `409 CONFLICT`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateDealershipRequest' }
+            example:
+              name: Prestige Edinburgh
+              address: 9 Charlotte Square
+              city: Edinburgh
+              phone: '+44 131 496 3000'
+              email: edinburgh@prestige.test
+              openingHours: Mon-Fri 09:00-17:30, Sat 09:00-13:00
+              description: A refined Georgian-townhouse showroom.
+      responses:
+        '201':
+          $ref: '#/components/responses/AdminDealershipCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dealerships/{id}:
+    get:
+      tags: [Admin - Dealerships]
+      summary: Dealership with its upcoming active booking count
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags: [Admin - Dealerships]
+      summary: Update a dealership (partial)
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateDealershipRequest' }
+            example: { phone: '+44 20 7946 1999', openingHours: Mon-Sat 10:00-19:00 }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dealerships/{id}/deactivate:
+    patch:
+      tags: [Admin - Dealerships]
+      summary: Deactivate a dealership
+      description: Blocked with `409 HAS_ACTIVE_BOOKINGS` (and the count) while future active bookings exist at it.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/HasActiveBookings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dealerships/{id}/activate:
+    patch:
+      tags: [Admin - Dealerships]
+      summary: Reactivate a dealership
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # --------------------------------------------------------- Admin - Slots
+  /api/admin/slots:
+    get:
+      tags: [Admin - Slots]
+      summary: List slots with their active booking (staff)
+      parameters:
+        - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
+        - { name: vehicleId, in: query, schema: { type: string, format: uuid } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: isActive, in: query, schema: { type: boolean } }
+        - { name: hasBooking, in: query, description: 'Whether the slot has an active booking.', schema: { type: boolean } }
+        - { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc], default: asc } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminSlotPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Admin - Slots]
+      summary: Create one slot
+      description: |
+        Must start in the future and last 15 to 240 minutes; the vehicle must be offered at the dealership.
+        A clash with another active slot of the same vehicle returns `409 SLOT_OVERLAP` naming the clashing slot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSlotRequest' }
+            example:
+              dealershipId: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34
+              vehicleId: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46
+              startAt: '2030-03-12T10:00:00+00:00'
+              endAt: '2030-03-12T11:00:00+00:00'
+      responses:
+        '201':
+          $ref: '#/components/responses/AdminSlotCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/SlotOverlap'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/slots/bulk:
+    post:
+      tags: [Admin - Slots]
+      summary: Generate many slots (with dry run)
+      description: |
+        Calendar dates, 24-hour times and weekdays are interpreted in `timeZone` (daylight saving handled).
+        `?dryRun=true` previews without writing. Candidates that overlap existing slots or lie in the past are
+        skipped and reported; the rest are created in one transaction.
+      parameters:
+        - { name: dryRun, in: query, schema: { type: boolean } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BulkSlotsRequest' }
+            example:
+              dealershipId: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34
+              vehicleId: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46
+              dateFrom: '2030-03-11'
+              dateTo: '2030-03-17'
+              daysOfWeek: [MON, WED, FRI]
+              dailyStartTime: '09:00'
+              dailyEndTime: '12:00'
+              durationMinutes: 60
+              breakMinutes: 30
+              timeZone: Europe/London
+      responses:
+        '200':
+          $ref: '#/components/responses/BulkSlotsResponse'
+        '201':
+          $ref: '#/components/responses/BulkSlotsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/slots/{id}:
+    get:
+      tags: [Admin - Slots]
+      summary: One slot
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags: [Admin - Slots]
+      summary: Change a slot's times
+      description: |
+        Blocked with `409 HAS_ACTIVE_BOOKINGS` when the slot has an active booking (reschedule the booking instead)
+        and with `409 SLOT_IN_PAST` once the slot has started.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSlotRequest' }
+            example: { startAt: '2030-03-12T14:00:00+00:00', endAt: '2030-03-12T15:00:00+00:00' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/SlotConflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/slots/{id}/deactivate:
+    patch:
+      tags: [Admin - Slots]
+      summary: Deactivate a slot
+      description: Blocked with `409 HAS_ACTIVE_BOOKINGS` while the slot has an active booking.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/HasActiveBookings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/slots/{id}/activate:
+    patch:
+      tags: [Admin - Slots]
+      summary: Reactivate a slot
+      description: Re-checks overlaps; a clash returns `409 SLOT_OVERLAP`.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/SlotOverlap'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # ---------------------------------------------------- Admin - Customers
+  /api/admin/customers:
+    get:
+      tags: [Admin - Customers]
+      summary: Search customers (staff)
+      parameters:
+        - { name: q, in: query, description: 'Name, email or phone. Every word must match.', schema: { type: string, maxLength: 100 } }
+        - { name: isActive, in: query, schema: { type: boolean } }
+        - { name: sortBy, in: query, schema: { type: string, enum: [createdAt, lastName, email, bookingCount], default: createdAt } }
+        - { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc], default: desc } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/CustomerPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/customers/{id}:
+    get:
+      tags: [Admin - Customers]
+      summary: Customer profile with a bookings summary
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/CustomerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/customers/{id}/status:
+    patch:
+      tags: [Admin - Customers]
+      summary: Activate or deactivate a customer
+      description: |
+        Deactivating cancels the customer's future active bookings (reason "Account deactivated", cancelled by
+        staff), each with history, an in-app notification and an email attempt, all in one transaction.
+        Customers are never deleted.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerStatusRequest' }
+            example: { isActive: false }
+      responses:
+        '200':
+          $ref: '#/components/responses/CustomerStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # -------------------------------------------------------- Admin - Staff
+  /api/staff:
+    get:
+      tags: [Admin - Staff]
+      summary: List staff accounts
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          $ref: '#/components/responses/StaffPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Admin - Staff]
+      summary: Create another staff account
+      description: Staff accounts cannot self-register. The password is a temporary one.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateStaffRequest' }
+            example:
+              firstName: Marcus
+              lastName: Ashworth
+              email: marcus.ashworth@prestige.test
+              password: Temporary2026
+              phone: '+44 20 7946 0102'
+      responses:
+        '201':
+          $ref: '#/components/responses/UserCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: td_session
+      description: JWT session cookie set by the login and register endpoints.
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ImageIdPath:
+      name: imageId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+    TimeZone:
+      name: timeZone
+      in: query
+      description: IANA time zone used for "today", "this month" and the trend's days.
+      schema: { type: string, default: UTC }
+      example: Europe/London
+  schemas:
+    ErrorCode:
+      type: string
+      enum:
+        - VALIDATION_ERROR
+        - UNAUTHENTICATED
+        - FORBIDDEN
+        - NOT_FOUND
+        - CONFLICT
+        - RATE_LIMITED
+        - EMAIL_TAKEN
+        - INVALID_CREDENTIALS
+        - INVALID_CURRENT_PASSWORD
+        - ACCOUNT_DISABLED
+        - SLOT_UNAVAILABLE
+        - BOOKING_CONFLICT
+        - SLOT_IN_PAST
+        - CANCELLATION_WINDOW_PASSED
+        - INVALID_STATUS_TRANSITION
+        - HAS_ACTIVE_BOOKINGS
+        - ACTIVE_BOOKING_LIMIT
+        - SLOT_OVERLAP
+        - UPLOAD_INVALID
+        - INTERNAL_ERROR
+    ErrorDetail:
+      type: object
+      required: [message]
+      properties:
+        field: { type: string, example: email }
+        message: { type: string, example: Enter a valid email address }
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success: { type: boolean, enum: [false] }
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { $ref: '#/components/schemas/ErrorCode' }
+            message: { type: string }
+            details:
+              type: array
+              items: { $ref: '#/components/schemas/ErrorDetail' }
+    PageMeta:
+      type: object
+      required: [page, pageSize, total, totalPages]
+      properties:
+        page: { type: integer, example: 1 }
+        pageSize: { type: integer, example: 10 }
+        total: { type: integer, example: 42 }
+        totalPages: { type: integer, example: 5 }
+    BookingStatus:
+      type: string
+      enum: [PENDING, APPROVED, REJECTED, CANCELLED, COMPLETED, RESCHEDULED]
+    Role:
+      type: string
+      enum: [CUSTOMER, STAFF]
+    VehicleType:
+      type: string
+      enum: [SEDAN, SUV, COUPE, CONVERTIBLE, HATCHBACK, SPORTS, GRAND_TOURER, MPV]
+    FuelType:
+      type: string
+      enum: [PETROL, DIESEL, HYBRID, PLUG_IN_HYBRID, ELECTRIC]
+    Transmission:
+      type: string
+      enum: [AUTOMATIC, MANUAL, DUAL_CLUTCH]
+    NotificationType:
+      type: string
+      enum: [BOOKING_CREATED, BOOKING_APPROVED, BOOKING_REJECTED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, BOOKING_COMPLETED]
+
+    # ------------------------------------------------------ requests
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, email, password, confirmPassword, phone]
+      properties:
+        firstName: { type: string, maxLength: 80 }
+        lastName: { type: string, maxLength: 80 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 72, description: 'At least one letter and one number.' }
+        confirmPassword: { type: string }
+        phone: { type: string }
+        drivingLicenseNumber: { type: string, minLength: 5, maxLength: 30 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    UpdateProfileRequest:
+      type: object
+      minProperties: 1
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string }
+        drivingLicenseNumber: { type: string, nullable: true }
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmPassword]
+      properties:
+        currentPassword: { type: string }
+        newPassword: { type: string, minLength: 8, maxLength: 72 }
+        confirmPassword: { type: string }
+    CreateStaffRequest:
+      type: object
+      required: [firstName, lastName, email, password, phone]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 72 }
+        phone: { type: string }
+    CreateBookingRequest:
+      type: object
+      required: [slotId]
+      properties:
+        slotId: { type: string, format: uuid }
+        customerNote: { type: string, maxLength: 500, nullable: true }
+    CancelMyBookingRequest:
+      type: object
+      properties:
+        reason: { type: string, maxLength: 500, nullable: true }
+    ApproveRequest:
+      type: object
+      properties:
+        staffNote: { type: string, maxLength: 500, nullable: true }
+    RejectRequest:
+      type: object
+      required: [rejectionReason]
+      properties:
+        rejectionReason: { type: string, minLength: 5, maxLength: 500 }
+    StaffCancelRequest:
+      type: object
+      required: [cancellationReason]
+      properties:
+        cancellationReason: { type: string, minLength: 5, maxLength: 500 }
+    CompleteRequest:
+      type: object
+      properties:
+        staffNote: { type: string, maxLength: 500, nullable: true }
+    RescheduleRequest:
+      type: object
+      required: [newSlotId]
+      properties:
+        newSlotId: { type: string, format: uuid }
+        note: { type: string, maxLength: 500, nullable: true }
+    CustomerStatusRequest:
+      type: object
+      required: [isActive]
+      properties:
+        isActive: { type: boolean }
+    CreateVehicleRequest:
+      type: object
+      required: [manufacturer, model, year, vehicleType, fuelType, transmission, engine, powerHp, seats, color, description]
+      properties:
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer, minimum: 1990, description: 'Up to next year.' }
+        vehicleType: { $ref: '#/components/schemas/VehicleType' }
+        fuelType: { $ref: '#/components/schemas/FuelType' }
+        transmission: { $ref: '#/components/schemas/Transmission' }
+        engine: { type: string }
+        powerHp: { type: integer, minimum: 1 }
+        topSpeedKmh: { type: integer, nullable: true }
+        acceleration0to100: { type: number, nullable: true }
+        seats: { type: integer, minimum: 1, maximum: 9 }
+        color: { type: string }
+        priceFrom: { type: number, nullable: true }
+        description: { type: string, minLength: 10, maxLength: 5000 }
+        features: { type: array, maxItems: 20, items: { type: string, maxLength: 60 } }
+        availabilityNote: { type: string, nullable: true }
+    UpdateVehicleRequest:
+      type: object
+      minProperties: 1
+      description: Any subset of the create fields.
+      properties:
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        vehicleType: { $ref: '#/components/schemas/VehicleType' }
+        fuelType: { $ref: '#/components/schemas/FuelType' }
+        transmission: { $ref: '#/components/schemas/Transmission' }
+        engine: { type: string }
+        powerHp: { type: integer }
+        topSpeedKmh: { type: integer, nullable: true }
+        acceleration0to100: { type: number, nullable: true }
+        seats: { type: integer }
+        color: { type: string }
+        priceFrom: { type: number, nullable: true }
+        description: { type: string }
+        features: { type: array, items: { type: string } }
+        availabilityNote: { type: string, nullable: true }
+    ReplaceDealershipsRequest:
+      type: object
+      required: [dealerships]
+      properties:
+        dealerships:
+          type: array
+          items:
+            type: object
+            required: [dealershipId, isAvailable]
+            properties:
+              dealershipId: { type: string, format: uuid }
+              isAvailable: { type: boolean }
+    UpdateImageRequest:
+      type: object
+      minProperties: 1
+      properties:
+        altText: { type: string, maxLength: 160 }
+        sortOrder: { type: integer, minimum: 0, maximum: 1000 }
+        isPrimary: { type: boolean }
+    CreateDealershipRequest:
+      type: object
+      required: [name, address, city, phone, email, openingHours]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        email: { type: string, format: email }
+        openingHours: { type: string }
+        description: { type: string, nullable: true }
+    UpdateDealershipRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        email: { type: string, format: email }
+        openingHours: { type: string }
+        description: { type: string, nullable: true }
+    CreateSlotRequest:
+      type: object
+      required: [dealershipId, vehicleId, startAt, endAt]
+      properties:
+        dealershipId: { type: string, format: uuid }
+        vehicleId: { type: string, format: uuid }
+        startAt: { type: string, format: date-time, description: 'ISO 8601 with offset.' }
+        endAt: { type: string, format: date-time }
+    UpdateSlotRequest:
+      type: object
+      minProperties: 1
+      properties:
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+    BulkSlotsRequest:
+      type: object
+      required: [dealershipId, vehicleId, dateFrom, dateTo, daysOfWeek, dailyStartTime, dailyEndTime, durationMinutes]
+      properties:
+        dealershipId: { type: string, format: uuid }
+        vehicleId: { type: string, format: uuid }
+        dateFrom: { type: string, format: date, description: 'YYYY-MM-DD.' }
+        dateTo: { type: string, format: date }
+        daysOfWeek: { type: array, items: { type: string, enum: [MON, TUE, WED, THU, FRI, SAT, SUN] } }
+        dailyStartTime: { type: string, example: '09:00' }
+        dailyEndTime: { type: string, example: '17:00' }
+        durationMinutes: { type: integer, minimum: 15, maximum: 240 }
+        breakMinutes: { type: integer, minimum: 0, maximum: 240, default: 0 }
+        timeZone: { type: string, default: UTC }
+
+    # ------------------------------------------------------ entities
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string }
+        drivingLicenseNumber: { type: string, nullable: true }
+        isActive: { type: boolean }
+        lastLoginAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+    UserPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/User' } }
+    ImageRef:
+      type: object
+      nullable: true
+      properties:
+        url: { type: string, example: /uploads/vehicles/7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46/0f2c.png }
+        altText: { type: string }
+    Image:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        url: { type: string }
+        altText: { type: string }
+        isPrimary: { type: boolean }
+        sortOrder: { type: integer }
+    DealershipSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        city: { type: string }
+    PublicDealership:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        openingHours: { type: string }
+        description: { type: string, nullable: true }
+    AdminDealership:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        openingHours: { type: string }
+        description: { type: string, nullable: true }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        vehicleCount: { type: integer }
+    AdminDealershipDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminDealership'
+        - type: object
+          properties:
+            upcomingActiveBookingCount: { type: integer }
+    AdminDealershipPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/AdminDealership' } }
+    CatalogListItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        vehicleType: { $ref: '#/components/schemas/VehicleType' }
+        fuelType: { $ref: '#/components/schemas/FuelType' }
+        transmission: { $ref: '#/components/schemas/Transmission' }
+        priceFrom: { type: number, nullable: true }
+        primaryImage: { $ref: '#/components/schemas/Image' }
+        dealerships: { type: array, items: { $ref: '#/components/schemas/DealershipSummary' } }
+        nextAvailableSlotAt: { type: string, format: date-time, nullable: true }
+    CatalogPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/CatalogListItem' } }
+    CatalogVehicle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        vehicleType: { $ref: '#/components/schemas/VehicleType' }
+        fuelType: { $ref: '#/components/schemas/FuelType' }
+        transmission: { $ref: '#/components/schemas/Transmission' }
+        engine: { type: string }
+        powerHp: { type: integer }
+        topSpeedKmh: { type: integer, nullable: true }
+        acceleration0to100: { type: number, nullable: true }
+        seats: { type: integer }
+        color: { type: string }
+        priceFrom: { type: number, nullable: true }
+        description: { type: string }
+        features: { type: array, items: { type: string } }
+        availabilityNote: { type: string, nullable: true }
+        images: { type: array, items: { $ref: '#/components/schemas/Image' } }
+        dealerships:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/PublicDealership'
+              - type: object
+                properties:
+                  upcomingAvailableSlots: { type: integer }
+    CatalogFilters:
+      type: object
+      properties:
+        manufacturers: { type: array, items: { type: string } }
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              manufacturer: { type: string }
+              models: { type: array, items: { type: string } }
+        vehicleTypes: { type: array, items: { $ref: '#/components/schemas/VehicleType' } }
+        fuelTypes: { type: array, items: { $ref: '#/components/schemas/FuelType' } }
+        transmissions: { type: array, items: { $ref: '#/components/schemas/Transmission' } }
+        yearRange:
+          type: object
+          nullable: true
+          properties:
+            min: { type: integer }
+            max: { type: integer }
+        priceRange:
+          type: object
+          nullable: true
+          properties:
+            min: { type: number }
+            max: { type: number }
+        cities: { type: array, items: { type: string } }
+    SlotPreview:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        isAvailable: { type: boolean }
+        cancellationWindowHours: { type: number }
+        dealership:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+            address: { type: string }
+            city: { type: string }
+            phone: { type: string }
+            openingHours: { type: string }
+        vehicle:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            manufacturer: { type: string }
+            model: { type: string }
+            year: { type: integer }
+            primaryImage: { $ref: '#/components/schemas/ImageRef' }
+    SlotAvailability:
+      type: object
+      properties:
+        vehicleId: { type: string, format: uuid }
+        timeZone: { type: string }
+        range:
+          type: object
+          properties:
+            from: { type: string, format: date-time }
+            to: { type: string, format: date-time }
+        dates: { type: array, items: { type: string, format: date, example: '2030-03-12' } }
+        slotsByDate:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                startAt: { type: string, format: date-time }
+                endAt: { type: string, format: date-time }
+                dealership: { $ref: '#/components/schemas/DealershipSummary' }
+    AdminVehicle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        vehicleType: { $ref: '#/components/schemas/VehicleType' }
+        fuelType: { $ref: '#/components/schemas/FuelType' }
+        transmission: { $ref: '#/components/schemas/Transmission' }
+        engine: { type: string }
+        powerHp: { type: integer }
+        topSpeedKmh: { type: integer, nullable: true }
+        acceleration0to100: { type: number, nullable: true }
+        seats: { type: integer }
+        color: { type: string }
+        priceFrom: { type: number, nullable: true }
+        description: { type: string }
+        features: { type: array, items: { type: string } }
+        availabilityNote: { type: string, nullable: true }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminVehicleListItem:
+      allOf:
+        - $ref: '#/components/schemas/AdminVehicle'
+        - type: object
+          properties:
+            primaryImage: { $ref: '#/components/schemas/Image' }
+            dealershipCount: { type: integer }
+    AdminVehiclePage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/AdminVehicleListItem' } }
+    VehicleDealership:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        city: { type: string }
+        isActive: { type: boolean }
+        isAvailable: { type: boolean }
+    AdminVehicleDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminVehicle'
+        - type: object
+          properties:
+            images: { type: array, items: { $ref: '#/components/schemas/Image' } }
+            dealerships: { type: array, items: { $ref: '#/components/schemas/VehicleDealership' } }
+            upcomingActiveBookingCount: { type: integer }
+    AdminSlot:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        dealership: { $ref: '#/components/schemas/DealershipSummary' }
+        vehicle:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            manufacturer: { type: string }
+            model: { type: string }
+        activeBooking:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            status: { $ref: '#/components/schemas/BookingStatus' }
+            customer:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                firstName: { type: string }
+                lastName: { type: string }
+                email: { type: string }
+    AdminSlotPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/AdminSlot' } }
+    BulkSlots:
+      type: object
+      properties:
+        dryRun: { type: boolean }
+        slots:
+          type: array
+          description: Slots created (or, in a dry run, that would be created).
+          items:
+            type: object
+            properties:
+              startAt: { type: string, format: date-time }
+              endAt: { type: string, format: date-time }
+        skipped:
+          type: array
+          items:
+            type: object
+            properties:
+              startAt: { type: string, format: date-time }
+              endAt: { type: string, format: date-time }
+              reason: { type: string, enum: [IN_PAST, OVERLAPS_EXISTING] }
+              clashingSlot:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  startAt: { type: string, format: date-time }
+                  endAt: { type: string, format: date-time }
+                  dealershipName: { type: string }
+        totals:
+          type: object
+          properties:
+            candidates: { type: integer }
+            slots: { type: integer }
+            skipped: { type: integer }
+    BookingCustomer:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+    Booking:
+      type: object
+      description: The booking returned when it is created or changed.
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/BookingStatus' }
+        customerNote: { type: string, nullable: true }
+        staffNote: { type: string, nullable: true }
+        rejectionReason: { type: string, nullable: true }
+        cancellationReason: { type: string, nullable: true }
+        cancelledBy: { allOf: [{ $ref: '#/components/schemas/Role' }], nullable: true }
+        approvedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        customer: { $ref: '#/components/schemas/BookingCustomer' }
+        slot:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            startAt: { type: string, format: date-time }
+            endAt: { type: string, format: date-time }
+        vehicle:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            manufacturer: { type: string }
+            model: { type: string }
+            year: { type: integer }
+            primaryImage: { $ref: '#/components/schemas/ImageRef' }
+        dealership:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+            address: { type: string }
+            city: { type: string }
+            phone: { type: string }
+    AdminBookingItem:
+      allOf:
+        - $ref: '#/components/schemas/Booking'
+        - type: object
+          description: Adds `customer.name` and `vehicle.name`.
+    AdminBookingPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/AdminBookingItem' } }
+    TimelineSlot:
+      type: object
+      nullable: true
+      properties:
+        id: { type: string, format: uuid }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        dealership:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+    AdminBookingDetail:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/BookingStatus' }
+        customerNote: { type: string, nullable: true }
+        staffNote: { type: string, nullable: true }
+        rejectionReason: { type: string, nullable: true }
+        cancellationReason: { type: string, nullable: true }
+        cancelledBy: { allOf: [{ $ref: '#/components/schemas/Role' }], nullable: true }
+        approvedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        customer:
+          type: object
+          description: Full profile, including driving licence number.
+        slot:
+          type: object
+        vehicle:
+          type: object
+        dealership:
+          type: object
+        statusHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              fromStatus: { allOf: [{ $ref: '#/components/schemas/BookingStatus' }], nullable: true }
+              toStatus: { $ref: '#/components/schemas/BookingStatus' }
+              action: { type: string, example: RESCHEDULED }
+              note: { type: string, nullable: true }
+              createdAt: { type: string, format: date-time }
+              oldSlot: { $ref: '#/components/schemas/TimelineSlot' }
+              newSlot: { $ref: '#/components/schemas/TimelineSlot' }
+              changedBy:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  name: { type: string }
+                  role: { $ref: '#/components/schemas/Role' }
+    MyBooking:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/BookingStatus' }
+        customerNote: { type: string, nullable: true }
+        staffNote: { type: string, nullable: true }
+        rejectionReason: { type: string, nullable: true }
+        cancellationReason: { type: string, nullable: true }
+        cancelledBy: { allOf: [{ $ref: '#/components/schemas/Role' }], nullable: true }
+        approvedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        slotId: { type: string, format: uuid }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        vehicle:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            manufacturer: { type: string }
+            model: { type: string }
+            year: { type: integer }
+            name: { type: string }
+            primaryImage: { $ref: '#/components/schemas/ImageRef' }
+        dealership:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+            address: { type: string }
+            city: { type: string }
+            phone: { type: string }
+            openingHours: { type: string }
+        canCancel: { type: boolean }
+        cancelBlockedReason: { type: string, nullable: true }
+    MyBookingPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/MyBooking' } }
+    MyBookingDetail:
+      allOf:
+        - $ref: '#/components/schemas/MyBooking'
+        - type: object
+          properties:
+            statusHistory:
+              type: array
+              description: Staff identities are shown as "Prestige team", the customer's own actions as "You".
+              items:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  fromStatus: { allOf: [{ $ref: '#/components/schemas/BookingStatus' }], nullable: true }
+                  toStatus: { $ref: '#/components/schemas/BookingStatus' }
+                  action: { type: string }
+                  note: { type: string, nullable: true }
+                  createdAt: { type: string, format: date-time }
+                  oldSlot: { $ref: '#/components/schemas/TimelineSlot' }
+                  newSlot: { $ref: '#/components/schemas/TimelineSlot' }
+                  changedBy:
+                    type: object
+                    properties:
+                      role: { $ref: '#/components/schemas/Role' }
+                      label: { type: string, example: Prestige team }
+    MyBookingCounts:
+      type: object
+      properties:
+        pending: { type: integer }
+        upcoming: { type: integer }
+        completed: { type: integer }
+        cancelled: { type: integer }
+        previous: { type: integer }
+        all: { type: integer }
+    Notification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/NotificationType' }
+        title: { type: string }
+        message: { type: string }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        bookingId: { type: string, format: uuid, nullable: true }
+    NotificationPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/Notification' } }
+    CustomerListItem:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            bookingCount: { type: integer }
+            lastBookingAt: { type: string, format: date-time, nullable: true }
+    CustomerPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/CustomerListItem' } }
+    CustomerDetail:
+      type: object
+      properties:
+        customer: { $ref: '#/components/schemas/User' }
+        summary:
+          type: object
+          properties:
+            total: { type: integer }
+            byStatus:
+              type: object
+              additionalProperties: { type: integer }
+        bookings:
+          type: array
+          description: The 50 most recent bookings by slot start.
+          items:
+            type: object
+    CustomerStatusResult:
+      type: object
+      properties:
+        customer: { $ref: '#/components/schemas/User' }
+        cancelledBookings: { type: integer }
+    DashboardSummary:
+      type: object
+      properties:
+        generatedAt: { type: string, format: date-time }
+        timeZone: { type: string }
+        pending: { type: integer, description: Bookings waiting for a decision. }
+        todaysTestDrives: { type: integer }
+        next7Days: { type: integer }
+        approvedUpcoming: { type: integer }
+        completedThisMonth: { type: integer }
+        cancelledThisMonth: { type: integer }
+        rejectedThisMonth: { type: integer }
+        totalCustomers: { type: integer }
+        activeVehicles: { type: integer }
+        activeDealerships: { type: integer }
+        freeSlotsNext7Days: { type: integer }
+        needsAttention:
+          type: object
+          properties:
+            pendingOlderThan24h:
+              type: object
+              properties:
+                count: { type: integer }
+                items: { type: array, items: { $ref: '#/components/schemas/AdminBookingItem' } }
+            pastNotCompleted:
+              type: object
+              properties:
+                count: { type: integer }
+                items: { type: array, items: { $ref: '#/components/schemas/AdminBookingItem' } }
+    Trend:
+      type: object
+      properties:
+        days: { type: integer }
+        timeZone: { type: string }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              pending: { type: integer }
+              confirmed: { type: integer }
+              completed: { type: integer }
+              cancelled: { type: integer }
+              total: { type: integer }
+    TopVehicles:
+      type: object
+      properties:
+        days: { type: integer }
+        since: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              vehicle:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  manufacturer: { type: string }
+                  model: { type: string }
+                  year: { type: integer }
+                  isActive: { type: boolean }
+                  name: { type: string }
+                  primaryImage: { $ref: '#/components/schemas/Image' }
+              requests: { type: integer }
+
+  responses:
+    # ------------------------------------------------------- errors
+    Unauthenticated:
+      description: Not signed in, or the session is invalid or expired (`UNAUTHENTICATED`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: UNAUTHENTICATED, message: Please sign in to continue } }
+    Forbidden:
+      description: The signed-in role may not use this endpoint (`FORBIDDEN`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: FORBIDDEN, message: You do not have permission to perform this action } }
+    NotFound:
+      description: The resource does not exist, or belongs to someone else (`NOT_FOUND`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: NOT_FOUND, message: Booking not found } }
+    ValidationError:
+      description: The request failed validation (`VALIDATION_ERROR`), with one detail per problem field.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Request validation failed
+              details:
+                - { field: email, message: Enter a valid email address }
+                - { field: zzUnknown, message: This field is not allowed }
+    RateLimited:
+      description: Too many requests (`RATE_LIMITED`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: RATE_LIMITED, message: Too many requests. Please try again later. } }
+    Conflict:
+      description: |
+        The request conflicts with the current state. The code says how: `EMAIL_TAKEN`, `CONFLICT`,
+        `SLOT_UNAVAILABLE`, `BOOKING_CONFLICT`, `ACTIVE_BOOKING_LIMIT`, `CANCELLATION_WINDOW_PASSED`,
+        `INVALID_STATUS_TRANSITION`, `SLOT_OVERLAP`, `HAS_ACTIVE_BOOKINGS` or `SLOT_IN_PAST`.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: SLOT_UNAVAILABLE, message: This time slot is no longer available. Please choose another slot } }
+    InvalidTransition:
+      description: The booking's current status does not allow this action (`INVALID_STATUS_TRANSITION`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            error:
+              code: INVALID_STATUS_TRANSITION
+              message: 'A booking cannot move from APPROVED to APPROVED. Allowed next statuses: RESCHEDULED, CANCELLED, COMPLETED'
+    HasActiveBookings:
+      description: Future active bookings (or, for a vehicle's dealerships, active slots) block the change (`HAS_ACTIVE_BOOKINGS` or `CONFLICT`). `details` carries the count.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            error:
+              code: HAS_ACTIVE_BOOKINGS
+              message: This dealership has 2 upcoming active bookings. Cancel or reschedule them before deactivating.
+              details: [{ field: activeBookingCount, message: '2' }]
+    SlotOverlap:
+      description: The slot overlaps another active slot of the same vehicle (`SLOT_OVERLAP`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            error:
+              code: SLOT_OVERLAP
+              message: This time overlaps another active slot for the same vehicle
+              details: [{ field: startAt, message: 'Overlaps slot 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01 (2030-03-12T10:00:00.000Z to 2030-03-12T11:00:00.000Z) at Prestige Mayfair' }]
+    SlotConflict:
+      description: The slot is booked (`HAS_ACTIVE_BOOKINGS`), has started (`SLOT_IN_PAST`) or the new time overlaps another slot (`SLOT_OVERLAP`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: HAS_ACTIVE_BOOKINGS, message: 'This slot has an active booking. Reschedule the booking to another slot instead of changing this slot.' } }
+    InvalidCredentials:
+      description: Wrong email or password (`INVALID_CREDENTIALS`); the answer is identical for unknown emails.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: INVALID_CREDENTIALS, message: The email or password you entered is incorrect } }
+    AccountDisabled:
+      description: The account has been deactivated (`ACCOUNT_DISABLED`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: ACCOUNT_DISABLED, message: This account has been deactivated } }
+    UploadInvalid:
+      description: A file is the wrong type, too large, or over the limits (`UPLOAD_INVALID`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, error: { code: UPLOAD_INVALID, message: '"notes.txt" is not a valid JPEG, PNG or WebP image' } }
+
+    # ----------------------------------------------------- successes
+    HealthResponse:
+      description: The service and its database are up.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  database: { type: string, example: up }
+          example: { success: true, data: { status: ok, database: up } }
+    NullResponse:
+      description: Done. `data` is null.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { nullable: true }
+          example: { success: true, message: Signed out successfully, data: null }
+    UserResponse:
+      description: The user (never includes the password hash).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/User' }
+          example:
+            success: true
+            data:
+              id: 0bbe7e55-75e7-4355-b1e3-af30b7b9ee11
+              email: amelia.hart@prestige.test
+              role: CUSTOMER
+              firstName: Amelia
+              lastName: Hart
+              phone: '+44 7700 900111'
+              drivingLicenseNumber: HART9503126A99XY
+              isActive: true
+              lastLoginAt: '2030-03-01T09:30:00.000Z'
+              createdAt: '2030-01-10T08:00:00.000Z'
+    UserCreatedResponse:
+      description: The account was created.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/User' }
+    StaffPageResponse:
+      description: A page of staff accounts.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/UserPage' }
+    DealershipListResponse:
+      description: Active dealerships (at most 100).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { type: array, items: { $ref: '#/components/schemas/PublicDealership' } }
+    DealershipResponse:
+      description: One active dealership.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/PublicDealership' }
+    CatalogPageResponse:
+      description: A page of vehicles.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/CatalogPage' }
+          example:
+            success: true
+            data:
+              page: 1
+              pageSize: 10
+              total: 1
+              totalPages: 1
+              items:
+                - id: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46
+                  manufacturer: Porsche
+                  model: 911 Carrera T
+                  year: 2025
+                  vehicleType: COUPE
+                  fuelType: PETROL
+                  transmission: MANUAL
+                  priceFrom: 112000
+                  primaryImage: { id: 4d2a8c61-9b3e-4f7a-8c15-6e0b2d9a3f47, url: /uploads/vehicles/7e1f4a93/0f2c.png, altText: Porsche 911 Carrera T, isPrimary: true, sortOrder: 1 }
+                  dealerships: [{ id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: Prestige Mayfair, city: London }]
+                  nextAvailableSlotAt: '2030-03-12T10:00:00.000Z'
+    CatalogFiltersResponse:
+      description: Filter options present in the data.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/CatalogFilters' }
+    CatalogVehicleResponse:
+      description: Full vehicle details.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/CatalogVehicle' }
+    SlotPreviewResponse:
+      description: Slot summary for booking confirmation.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/SlotPreview' }
+          example:
+            success: true
+            data:
+              id: 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01
+              startAt: '2030-03-12T10:00:00.000Z'
+              endAt: '2030-03-12T11:00:00.000Z'
+              isAvailable: true
+              cancellationWindowHours: 24
+              dealership: { id: 3b2eeacc-b2df-4b3d-a64c-4177a9369608, name: Prestige Mayfair, address: '14 Berkeley Square, Mayfair', city: London, phone: '+44 20 7946 1000', openingHours: 'Mon-Fri 09:00-18:00' }
+              vehicle: { id: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46, manufacturer: Porsche, model: 911 Carrera T, year: 2025, primaryImage: null }
+    SlotAvailabilityResponse:
+      description: Available slots grouped by date.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/SlotAvailability' }
+          example:
+            success: true
+            data:
+              vehicleId: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46
+              timeZone: Europe/London
+              range: { from: '2030-03-10T09:00:00.000Z', to: '2030-03-24T09:00:00.000Z' }
+              dates: ['2030-03-12']
+              slotsByDate:
+                '2030-03-12':
+                  - id: 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01
+                    startAt: '2030-03-12T10:00:00.000Z'
+                    endAt: '2030-03-12T11:00:00.000Z'
+                    dealership: { id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: Prestige Mayfair, city: London }
+    BookingCreatedResponse:
+      description: The booking was created in status PENDING.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/Booking' }
+    BookingResponse:
+      description: The booking after the action.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/Booking' }
+    MyBookingPageResponse:
+      description: A page of the customer's bookings.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/MyBookingPage' }
+    MyBookingCountsResponse:
+      description: Booking counts for the tab badges.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/MyBookingCounts' }
+          example: { success: true, data: { pending: 1, upcoming: 2, completed: 3, cancelled: 1, previous: 4, all: 7 } }
+    MyBookingDetailResponse:
+      description: The booking with its status timeline.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/MyBookingDetail' }
+    NotificationPageResponse:
+      description: A page of notifications.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/NotificationPage' }
+    UnreadCountResponse:
+      description: Unread notification count.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data:
+                type: object
+                properties:
+                  count: { type: integer }
+          example: { success: true, data: { count: 3 } }
+    ReadAllResponse:
+      description: How many notifications were marked as read.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data:
+                type: object
+                properties:
+                  updated: { type: integer }
+    NotificationResponse:
+      description: The notification, marked as read.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/Notification' }
+    AdminBookingPageResponse:
+      description: A page of bookings.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminBookingPage' }
+    AdminBookingDetailResponse:
+      description: Full booking detail.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminBookingDetail' }
+    DashboardSummaryResponse:
+      description: Dashboard numbers.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/DashboardSummary' }
+    TrendResponse:
+      description: One point per day, oldest first.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/Trend' }
+    TopVehiclesResponse:
+      description: Most requested vehicles.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/TopVehicles' }
+    AdminVehiclePageResponse:
+      description: A page of vehicles.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminVehiclePage' }
+    AdminVehicleCreatedResponse:
+      description: The vehicle was created (active).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminVehicle' }
+    AdminVehicleResponse:
+      description: The vehicle.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminVehicle' }
+    AdminVehicleDetailResponse:
+      description: The vehicle with images and dealerships.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminVehicleDetail' }
+    VehicleDealershipsResponse:
+      description: The dealerships offering the vehicle.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { type: array, items: { $ref: '#/components/schemas/VehicleDealership' } }
+    ImageListResponse:
+      description: All images of the vehicle in display order.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { type: array, items: { $ref: '#/components/schemas/Image' } }
+    AdminDealershipPageResponse:
+      description: A page of dealerships.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminDealershipPage' }
+    AdminDealershipCreatedResponse:
+      description: The dealership was created (active).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminDealership' }
+    AdminDealershipResponse:
+      description: The dealership.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminDealership' }
+    AdminDealershipDetailResponse:
+      description: The dealership with its upcoming active booking count.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminDealershipDetail' }
+    AdminSlotPageResponse:
+      description: A page of slots.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/AdminSlotPage' }
+    AdminSlotCreatedResponse:
+      description: The slot was created.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminSlot' }
+    AdminSlotResponse:
+      description: The slot.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/AdminSlot' }
+    BulkSlotsResponse:
+      description: What was created (`201`) or would be created (`200`, dry run), and what was skipped.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/BulkSlots' }
+    CustomerPageResponse:
+      description: A page of customers with booking statistics.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/CustomerPage' }
+    CustomerDetailResponse:
+      description: Customer profile and bookings summary.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              data: { $ref: '#/components/schemas/CustomerDetail' }
+    CustomerStatusResponse:
+      description: The customer and how many future bookings were cancelled.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, enum: [true] }
+              message: { type: string }
+              data: { $ref: '#/components/schemas/CustomerStatusResult' }

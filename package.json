@@ -1,0 +1,31 @@
+{
+  "name": "luxury-testdrive",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "postinstall": "npm run prisma:generate --workspace=api",
+    "dev": "concurrently -n \"api,web\" -c \"cyan,magenta\" \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+    "dev:api": "npm run dev --workspace=api",
+    "dev:web": "npm run dev --workspace=web",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run prisma:migrate --workspace=api",
+    "db:seed": "npm run prisma:seed --workspace=api",
+    "db:reset": "npm run prisma:reset --workspace=api",
+    "demo:reset": "npm run demo:reset --workspace=api",
+    "test:e2e": "npm run test:e2e --workspace=web",
+    "test:all": "npm run test --workspaces --if-present && npm run test:e2e",
+    "test:report:docs": "node scripts/test-report.mjs",
+    "test:concurrency": "npm run test:concurrency --workspace=api",
+    "test:coverage": "npm run test:coverage --workspace=api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
