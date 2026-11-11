@@ -7,7 +7,7 @@
     "web"
   ],
   "scripts": {
-    "postinstall": "npm run prisma:generate --workspace=api",
+    "postinstall": "node scripts/postinstall.cjs",
     "dev": "concurrently -n \"api,web\" -c \"cyan,magenta\" \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
     "dev:api": "npm run dev --workspace=api",
     "dev:web": "npm run dev --workspace=web",
