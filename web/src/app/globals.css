@@ -9,13 +9,22 @@
   }
 
   body {
-    @apply bg-ivory-100 font-sans text-ink-900 antialiased;
+    @apply bg-ivory-100 font-sans font-normal text-ink-900 antialiased;
   }
 
+  /* Cormorant Garamond is loaded at 500 and 600 only; headings default to 600 (SemiBold). */
   h1,
   h2,
   h3 {
-    @apply font-display tracking-tight;
+    @apply font-display font-semibold tracking-tight;
+  }
+
+  /* Cormorant draws old-style figures by default; lining figures keep "911" or "300" on one baseline. */
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-variant-numeric: lining-nums;
   }
 
   :focus-visible {

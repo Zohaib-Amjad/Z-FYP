@@ -21,12 +21,12 @@ export function BookingSuccess({ booking }: { booking: Booking }) {
 
   const addToCalendar = () => {
     const ics = buildIcs({
-      uid: `${booking.id}@prestige-testdrive`,
+      uid: `${booking.id}@luxdrive`,
       start: new Date(booking.slot.startAt),
       end: new Date(booking.slot.endAt),
       summary: `Test drive: ${vehicle}`,
       location: `${booking.dealership.name}, ${booking.dealership.address}, ${booking.dealership.city}`,
-      description: `Prestige Test Drive booking ${reference}. Your request is pending approval; you will be notified when it is confirmed.`,
+      description: `LuxDrive booking ${reference}. Your request is pending approval; you will be notified when it is confirmed.`,
     });
     downloadIcs(`test-drive-${reference}.ics`, ics);
   };
@@ -35,7 +35,7 @@ export function BookingSuccess({ booking }: { booking: Booking }) {
     <Card className="mx-auto max-w-2xl">
       <CardBody className="space-y-7 p-6 sm:p-10">
         <div className="text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e3f4ea] text-status-approved">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-approved-soft text-status-approved">
             <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
           </span>
           <p className="eyebrow mt-5">Request received</p>

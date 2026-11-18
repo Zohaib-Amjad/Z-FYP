@@ -71,7 +71,7 @@ function EditForm({ slot, onClose }: { slot: AdminSlot; onClose: () => void }) {
       {blocked ? (
         <div
           role="alert"
-          className="rounded-control border border-status-rejected/30 bg-[#fdf6f6] px-4 py-3 text-sm text-status-rejected"
+          className="rounded-control border border-status-rejected/30 bg-status-rejected-soft px-4 py-3 text-sm text-status-rejected"
         >
           <p>{blocked.message}</p>
           <p className="mt-1">

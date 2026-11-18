@@ -46,7 +46,7 @@ const NAV: NavItem[] = [
   { href: '/admin/profile', label: 'My profile', icon: UserRound },
 ];
 
-const COLLAPSE_KEY = 'prestige-admin-sidebar-collapsed';
+const COLLAPSE_KEY = 'luxdrive-admin-sidebar-collapsed';
 
 function SidebarNav({
   collapsed = false,
@@ -126,7 +126,7 @@ function AdminUserMenu() {
       >
         <span
           aria-hidden="true"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-900 text-xs font-bold text-gold-300"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-900 text-xs font-semibold text-gold-300"
         >
           {initials(user)}
         </span>
@@ -188,7 +188,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-ivory-100">
+    <div className="flex min-h-screen bg-ink-50">
       <aside
         className={cn(
           'on-dark sticky top-0 hidden h-screen shrink-0 flex-col border-r border-ink-800 bg-ink-950 transition-[width] duration-200 lg:flex',
@@ -204,8 +204,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {collapsed ? (
             <Link
               href="/admin"
-              aria-label="Prestige administration, dashboard"
-              className="font-display text-xl font-bold text-gold-400"
+              aria-label="LuxDrive administration, dashboard"
+              className="font-display text-xl font-semibold text-gold-400"
             >
               P
             </Link>

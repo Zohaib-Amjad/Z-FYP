@@ -1,6 +1,6 @@
 {
-  "id": "prestige-local-api-on-port-4000-",
-  "name": "Prestige Local (API on port 4000)",
+  "id": "luxdrive-local-api-on-port-4000-",
+  "name": "LuxDrive Local (API on port 4000)",
   "values": [
     {
       "key": "baseUrl",

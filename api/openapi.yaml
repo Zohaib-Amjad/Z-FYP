@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Prestige Test Drive API
+  title: LuxDrive API
   version: 1.0.0
   description: |
     REST API for the Luxury Car Test-Drive Booking and Management System.
@@ -74,7 +74,7 @@ paths:
               email: charlotte.ainsworth@example.com
               password: Velvet2026
               confirmPassword: Velvet2026
-              phone: '+44 7700 900777'
+              phone: '+92 300 5550777'
               drivingLicenseNumber: AINSW901015C99XY
       responses:
         '201':
@@ -158,7 +158,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
-            example: { firstName: Amelia, lastName: Hart-Lowe, phone: '+44 7700 900999' }
+            example: { firstName: Amelia, lastName: Hart-Lowe, phone: '+92 300 5550999' }
       responses:
         '200':
           $ref: '#/components/responses/UserResponse'
@@ -257,7 +257,7 @@ paths:
         - { name: dealershipId, in: query, schema: { type: string, format: uuid } }
         - { name: from, in: query, description: 'ISO 8601 with offset. Defaults to now.', schema: { type: string, format: date-time } }
         - { name: to, in: query, description: 'ISO 8601 with offset. Defaults to 14 days after `from`.', schema: { type: string, format: date-time } }
-        - { name: timeZone, in: query, description: 'IANA time zone used to group slots by date.', schema: { type: string, default: UTC }, example: Europe/London }
+        - { name: timeZone, in: query, description: 'IANA time zone used to group slots by date.', schema: { type: string, default: UTC }, example: Asia/Karachi }
       responses:
         '200':
           $ref: '#/components/responses/SlotAvailabilityResponse'
@@ -987,13 +987,13 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/CreateDealershipRequest' }
             example:
-              name: Prestige Edinburgh
-              address: 9 Charlotte Square
-              city: Edinburgh
-              phone: '+44 131 496 3000'
-              email: edinburgh@prestige.test
+              name: LuxDrive DHA
+              address: 27 Khayaban-e-Shahbaz, DHA Phase 6
+              city: Karachi
+              phone: '+92 21 3584 3000'
+              email: dha@luxdrive.test
               openingHours: Mon-Fri 09:00-17:30, Sat 09:00-13:00
-              description: A refined Georgian-townhouse showroom.
+              description: A refined showroom moments from the Clifton seafront.
       responses:
         '201':
           $ref: '#/components/responses/AdminDealershipCreatedResponse'
@@ -1032,7 +1032,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/UpdateDealershipRequest' }
-            example: { phone: '+44 20 7946 1999', openingHours: Mon-Sat 10:00-19:00 }
+            example: { phone: '+92 42 3575 1999', openingHours: Mon-Sat 10:00-19:00 }
       responses:
         '200':
           $ref: '#/components/responses/AdminDealershipResponse'
@@ -1070,6 +1070,50 @@ paths:
     patch:
       tags: [Admin - Dealerships]
       summary: Reactivate a dealership
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/admin/dealerships/{id}/image:
+    post:
+      tags: [Admin - Dealerships]
+      summary: Upload or replace the showroom photograph
+      description: Sends one JPEG, PNG or WebP image (checked by content, not just the extension) in the `image` field. The file is stored under a random name; an earlier uploaded photograph is deleted.
+      parameters:
+        - { $ref: '#/components/parameters/IdPath' }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image: { type: string, format: binary }
+      responses:
+        '200':
+          $ref: '#/components/responses/AdminDealershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UploadInvalid'
+    delete:
+      tags: [Admin - Dealerships]
+      summary: Remove the showroom photograph
+      description: Clears `imageUrl`. A photograph uploaded through the portal is also deleted from disk.
       parameters:
         - { $ref: '#/components/parameters/IdPath' }
       responses:
@@ -1160,7 +1204,7 @@ paths:
               dailyEndTime: '12:00'
               durationMinutes: 60
               breakMinutes: 30
-              timeZone: Europe/London
+              timeZone: Asia/Karachi
       responses:
         '200':
           $ref: '#/components/responses/BulkSlotsResponse'
@@ -1354,7 +1398,7 @@ paths:
               lastName: Ashworth
               email: marcus.ashworth@prestige.test
               password: Temporary2026
-              phone: '+44 20 7946 0102'
+              phone: '+92 42 3575 0102'
       responses:
         '201':
           $ref: '#/components/responses/UserCreatedResponse'
@@ -1398,7 +1442,7 @@ components:
       in: query
       description: IANA time zone used for "today", "this month" and the trend's days.
       schema: { type: string, default: UTC }
-      example: Europe/London
+      example: Asia/Karachi
   schemas:
     ErrorCode:
       type: string
@@ -1713,6 +1757,7 @@ components:
         email: { type: string }
         openingHours: { type: string }
         description: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true, description: 'Showroom photograph, served under /uploads.', example: /uploads/dealerships/3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34/9b1f7c2e-4d3a-4e8b-9f61-2a7c5d0e8b13.jpg }
     AdminDealership:
       type: object
       properties:
@@ -1724,6 +1769,7 @@ components:
         email: { type: string }
         openingHours: { type: string }
         description: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
         isActive: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -2142,7 +2188,7 @@ components:
           properties:
             statusHistory:
               type: array
-              description: Staff identities are shown as "Prestige team", the customer's own actions as "You".
+              description: Staff identities are shown as "LuxDrive team", the customer's own actions as "You".
               items:
                 type: object
                 properties:
@@ -2158,7 +2204,7 @@ components:
                     type: object
                     properties:
                       role: { $ref: '#/components/schemas/Role' }
-                      label: { type: string, example: Prestige team }
+                      label: { type: string, example: LuxDrive team }
     MyBookingCounts:
       type: object
       properties:
@@ -2366,7 +2412,7 @@ components:
             error:
               code: SLOT_OVERLAP
               message: This time overlaps another active slot for the same vehicle
-              details: [{ field: startAt, message: 'Overlaps slot 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01 (2030-03-12T10:00:00.000Z to 2030-03-12T11:00:00.000Z) at Prestige Mayfair' }]
+              details: [{ field: startAt, message: 'Overlaps slot 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01 (2030-03-12T10:00:00.000Z to 2030-03-12T11:00:00.000Z) at LuxDrive Gulberg' }]
     SlotConflict:
       description: The slot is booked (`HAS_ACTIVE_BOOKINGS`), has started (`SLOT_IN_PAST`) or the new time overlaps another slot (`SLOT_OVERLAP`).
       content:
@@ -2436,7 +2482,7 @@ components:
               role: CUSTOMER
               firstName: Amelia
               lastName: Hart
-              phone: '+44 7700 900111'
+              phone: '+92 300 5550111'
               drivingLicenseNumber: HART9503126A99XY
               isActive: true
               lastLoginAt: '2030-03-01T09:30:00.000Z'
@@ -2504,7 +2550,7 @@ components:
                   transmission: MANUAL
                   priceFrom: 112000
                   primaryImage: { id: 4d2a8c61-9b3e-4f7a-8c15-6e0b2d9a3f47, url: /uploads/vehicles/7e1f4a93/0f2c.png, altText: Porsche 911 Carrera T, isPrimary: true, sortOrder: 1 }
-                  dealerships: [{ id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: Prestige Mayfair, city: London }]
+                  dealerships: [{ id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: LuxDrive Gulberg, city: Lahore }]
                   nextAvailableSlotAt: '2030-03-12T10:00:00.000Z'
     CatalogFiltersResponse:
       description: Filter options present in the data.
@@ -2541,7 +2587,7 @@ components:
               endAt: '2030-03-12T11:00:00.000Z'
               isAvailable: true
               cancellationWindowHours: 24
-              dealership: { id: 3b2eeacc-b2df-4b3d-a64c-4177a9369608, name: Prestige Mayfair, address: '14 Berkeley Square, Mayfair', city: London, phone: '+44 20 7946 1000', openingHours: 'Mon-Fri 09:00-18:00' }
+              dealership: { id: 3b2eeacc-b2df-4b3d-a64c-4177a9369608, name: LuxDrive Gulberg, address: '42 Main Boulevard, Gulberg III', city: Lahore, phone: '+92 42 3575 1000', openingHours: 'Mon-Fri 09:00-18:00' }
               vehicle: { id: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46, manufacturer: Porsche, model: 911 Carrera T, year: 2025, primaryImage: null }
     SlotAvailabilityResponse:
       description: Available slots grouped by date.
@@ -2556,7 +2602,7 @@ components:
             success: true
             data:
               vehicleId: 7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46
-              timeZone: Europe/London
+              timeZone: Asia/Karachi
               range: { from: '2030-03-10T09:00:00.000Z', to: '2030-03-24T09:00:00.000Z' }
               dates: ['2030-03-12']
               slotsByDate:
@@ -2564,7 +2610,7 @@ components:
                   - id: 6b2c9d4e-0f8a-4a52-9a67-1d3b5c7e9f01
                     startAt: '2030-03-12T10:00:00.000Z'
                     endAt: '2030-03-12T11:00:00.000Z'
-                    dealership: { id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: Prestige Mayfair, city: London }
+                    dealership: { id: 3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34, name: LuxDrive Gulberg, city: Lahore }
     BookingCreatedResponse:
       description: The booking was created in status PENDING.
       content:

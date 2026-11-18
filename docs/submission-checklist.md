@@ -8,7 +8,7 @@ Tick each item before handing in the project. Commands run from the repository r
 - [ ] `npm install`
 - [ ] `api/.env` and `web/.env` created from the `.env.example` files
 - [ ] `npm run db:migrate` finishes without errors (needs the `btree_gist` extension)
-- [ ] `npm run db:seed` prints 2 staff, 6 customers, 3 dealerships, 12 vehicles
+- [ ] `npm run db:seed` prints 2 staff, 6 customers, 3 dealerships, 15 vehicles
 - [ ] `npm run dev`, then <http://localhost:3000> shows the home page with vehicles
 - [ ] <http://localhost:4000/api/health> answers `status: ok, database: up`
 - [ ] <http://localhost:4000/api/docs> shows Swagger UI

@@ -6,7 +6,7 @@ import { VehicleGallery } from '@/components/vehicles/VehicleGallery';
 import { Badge } from '@/components/ui/Badge';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardBody } from '@/components/ui/Card';
-import { enumLabel, formatPrice } from '@/lib/format';
+import { enumLabel } from '@/lib/format';
 import { fetchPublicResult } from '@/lib/serverApi';
 import type { VehicleDetail } from '@/types';
 
@@ -80,9 +80,6 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           <Badge>{enumLabel(vehicle.vehicleType)}</Badge>
           <Badge>{enumLabel(vehicle.fuelType)}</Badge>
           <Badge>{vehicle.year}</Badge>
-          <span className="ml-1 text-sm text-ink-600">
-            From <strong className="text-ink-900">{formatPrice(vehicle.priceFrom)}</strong>
-          </span>
         </div>
       </header>
 

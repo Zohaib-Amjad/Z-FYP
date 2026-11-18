@@ -90,6 +90,8 @@ export interface Dealership extends DealershipRef {
   email: string;
   openingHours: string;
   description: string | null;
+  /** Showroom photograph served under /uploads, or null. */
+  imageUrl: string | null;
 }
 
 export interface AvailableSlot {

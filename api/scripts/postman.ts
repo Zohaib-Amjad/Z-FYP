@@ -295,12 +295,12 @@ export const OUTPUT_FILES = {
 export const renderOutputs = (): Record<keyof typeof OUTPUT_FILES, string> => ({
   collection: `${JSON.stringify(buildCollection(loadSpec()), null, 2)}\n`,
   apiEnvironment: `${JSON.stringify(
-    buildEnvironment('Prestige Local (API on port 4000)', 'http://localhost:4000'),
+    buildEnvironment('LuxDrive Local (API on port 4000)', 'http://localhost:4000'),
     null,
     2,
   )}\n`,
   webEnvironment: `${JSON.stringify(
-    buildEnvironment('Prestige Local (web proxy on port 3000)', 'http://localhost:3000'),
+    buildEnvironment('LuxDrive Local (web proxy on port 3000)', 'http://localhost:3000'),
     null,
     2,
   )}\n`,

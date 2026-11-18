@@ -4,8 +4,8 @@ import { StatusBadge } from '@/components/ui/Badge';
 import type { AdminSlot } from '@/types';
 
 const STATE_STYLES = {
-  free: 'bg-[#e3f4ea] text-status-approved ring-[#a8d6bb]',
-  booked: 'bg-[#e4ecf8] text-status-completed ring-[#b2c6e6]',
+  free: 'bg-status-approved-soft text-status-approved ring-status-approved-line',
+  booked: 'bg-status-booked-soft text-status-booked ring-status-booked-line',
   inactive: 'bg-ink-100 text-ink-600 ring-ink-300',
 } as const;
 

@@ -36,7 +36,7 @@ An honest account of what the system does not do, why, and what would come next.
 | Search | Catalogue search uses case-insensitive text matching, not full-text ranking | Fine for a catalogue of dozens to hundreds of vehicles. |
 | Images | Stored on local disk under `api/uploads`; no thumbnails or CDN | Not suitable for several servers without shared storage. |
 | Reporting | One dashboard with summary cards, a trend and top vehicles; no export (CSV/PDF) | Detailed reporting needs direct database queries. |
-| Internationalisation | English text only; prices are shown in GBP | No translations. |
+| Internationalisation | English text only; vehicle prices are not shown to customers (the system books test drives, not sales) and are kept in PKR for staff only (see pricing-sources.md) | No translations. |
 | Audit | Audit lines go to the API log; the database keeps status history only | Staff edits to vehicles and slots are logged but not queryable in the application. |
 | Dependencies | Security advisories whose fixes require major upgrades (for example Next.js, Zod, Vitest) | Assessed in `docs/security.md`; none is exploitable in the localhost scope, but they must be revisited before any real deployment. |
 | Testing | End-to-end tests run in Chromium only; no automated visual or load tests | Cross-browser behaviour was not automated. |

@@ -21,15 +21,15 @@ describe('parseFilters', () => {
 
   it('reads valid values', () => {
     const filters = parse(
-      'q=ghost&manufacturer=Rolls-Royce&fuelType=ELECTRIC&minPrice=50000&availableOnly=true&sort=priceAsc&page=3',
+      'q=ghost&manufacturer=Rolls-Royce&fuelType=ELECTRIC&minYear=2024&availableOnly=true&sort=powerDesc&page=3',
     );
     expect(filters).toMatchObject({
       q: 'ghost',
       manufacturer: 'Rolls-Royce',
       fuelType: 'ELECTRIC',
-      minPrice: '50000',
+      minYear: '2024',
       availableOnly: true,
-      sort: 'priceAsc',
+      sort: 'powerDesc',
       page: 3,
     });
   });
@@ -40,6 +40,10 @@ describe('parseFilters', () => {
     );
     expect(filters).toEqual(DEFAULT_FILTERS);
     expect(parse('page=2.5').page).toBe(1);
+  });
+
+  it('ignores the retired price filter and price sorts in old bookmarked links', () => {
+    expect(parse('minPrice=50000&maxPrice=90000&sort=priceAsc')).toEqual(DEFAULT_FILTERS);
   });
 });
 
@@ -66,7 +70,7 @@ describe('toApiQuery', () => {
       availableOnly: undefined,
       sort: 'newest',
       page: 1,
-      pageSize: 12,
+      pageSize: 50,
     });
   });
 
@@ -97,21 +101,18 @@ describe('chips', () => {
       q: 'coupe',
       fuelType: 'PLUG_IN_HYBRID' as const,
       minYear: '2024',
-      minPrice: '70000',
-      maxPrice: '150000',
       availableOnly: true,
     };
     expect(activeChips(filters).map(chip => chip.label)).toEqual([
       '“coupe”',
       'Plug-in hybrid',
       'Year 2024 to any',
-      'Price £70,000 to £150,000',
       'Has available slots',
     ]);
   });
 
   it('has no chips by default, and sort is not a chip', () => {
-    expect(activeChips({ ...DEFAULT_FILTERS, sort: 'priceAsc' })).toEqual([]);
+    expect(activeChips({ ...DEFAULT_FILTERS, sort: 'powerDesc' })).toEqual([]);
   });
 
   it('removes a single chip, including merged ranges, and returns to page 1', () => {
@@ -131,10 +132,10 @@ describe('chips', () => {
     const cleared = clearAll({
       ...DEFAULT_FILTERS,
       fuelType: 'DIESEL',
-      sort: 'priceDesc',
+      sort: 'manufacturerAsc',
       page: 3,
     });
-    expect(cleared).toEqual({ ...DEFAULT_FILTERS, sort: 'priceDesc' });
+    expect(cleared).toEqual({ ...DEFAULT_FILTERS, sort: 'manufacturerAsc' });
   });
 });
 

@@ -49,7 +49,7 @@ const booking = (overrides: Partial<BookingDto> = {}): BookingDto => ({
   },
   dealership: {
     id: 'd1',
-    name: 'Prestige Mayfair',
+    name: 'LuxDrive Mayfair',
     address: '14 Berkeley Square',
     city: 'London',
     phone: '+44 20 7946 1000',
@@ -60,7 +60,7 @@ const booking = (overrides: Partial<BookingDto> = {}): BookingDto => ({
 const previousSlot = {
   startAt: new Date('2030-03-05T14:00:00Z'),
   endAt: new Date('2030-03-05T15:00:00Z'),
-  dealershipName: 'Prestige Deansgate',
+  dealershipName: 'LuxDrive Deansgate',
 };
 
 const build = (type: NotificationType, vars: Partial<NotificationVars> = {}) =>
@@ -72,7 +72,7 @@ describe('notification content for every type', () => {
 
     for (const field of [content.message, content.text, content.html]) {
       expect(field).toContain('Porsche 911 Carrera T');
-      expect(field).toContain('Prestige Mayfair');
+      expect(field).toContain('LuxDrive Mayfair');
     }
     expect(content.message).toContain('Tuesday, 12 March 2030, 10:00 to 11:00 UTC');
     expect(content.text).toContain('Tuesday, 12 March 2030, 10:00 to 11:00 UTC');
@@ -121,14 +121,14 @@ describe('type-specific wording', () => {
     const content = build('BOOKING_RESCHEDULED', { previousSlot, note: 'Vehicle service' });
 
     expect(content.message).toContain(
-      'moved from Tuesday, 5 March 2030, 14:00 to 15:00 UTC at Prestige Deansgate',
+      'moved from Tuesday, 5 March 2030, 14:00 to 15:00 UTC at LuxDrive Deansgate',
     );
     expect(content.message).toContain(
-      'to Tuesday, 12 March 2030, 10:00 to 11:00 UTC at Prestige Mayfair',
+      'to Tuesday, 12 March 2030, 10:00 to 11:00 UTC at LuxDrive Mayfair',
     );
     expect(content.message).toContain('A note from our team: Vehicle service.');
     expect(content.text).toContain(
-      'Previously: Tuesday, 5 March 2030, 14:00 to 15:00 UTC at Prestige Deansgate',
+      'Previously: Tuesday, 5 March 2030, 14:00 to 15:00 UTC at LuxDrive Deansgate',
     );
   });
 
@@ -162,13 +162,13 @@ describe('type-specific wording', () => {
 });
 
 describe('email layout', () => {
-  it('produces a complete, self-contained HTML document in the Prestige style', () => {
+  it('produces a complete, self-contained HTML document in the LuxDrive style', () => {
     const { html } = build('BOOKING_APPROVED');
 
     expect(html.startsWith('<!DOCTYPE html>')).toBe(true);
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('name="viewport"');
-    expect(html).toContain('PRESTIGE');
+    expect(html).toContain('LUXDRIVE');
     expect(html).toContain('#b8975a');
     expect(html).toContain('Georgia');
     expect(html).toContain('Test drive confirmed');
@@ -184,9 +184,9 @@ describe('email layout', () => {
 
     expect(text).not.toMatch(/<[a-z/][^>]*>/i);
     expect(text).toContain('Vehicle: Porsche 911 Carrera T (2025)');
-    expect(text).toContain('Dealership: Prestige Mayfair, 14 Berkeley Square, London');
+    expect(text).toContain('Dealership: LuxDrive Mayfair, 14 Berkeley Square, London');
     expect(text).toContain('Status: Confirmed');
-    expect(text.trimEnd().endsWith('Prestige Test Drive')).toBe(true);
+    expect(text.trimEnd().endsWith('LuxDrive')).toBe(true);
   });
 
   it('escapes user-supplied text so it cannot inject markup', () => {

@@ -85,7 +85,7 @@ export function LoginForm({ variant, next, expired = false }: LoginFormProps) {
       </Button>
       {isStaffForm ? null : (
         <p className="text-center text-sm text-ink-600">
-          New to Prestige?{' '}
+          New to LuxDrive?{' '}
           <Link
             href={next ? `/register?next=${encodeURIComponent(next)}` : '/register'}
             className="font-semibold text-gold-700 underline-offset-4 hover:underline"

@@ -16,9 +16,10 @@ export function enumLabel(value: string): string {
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
-const currency = new Intl.NumberFormat('en-GB', {
+const currency = new Intl.NumberFormat('en-PK', {
   style: 'currency',
-  currency: 'GBP',
+  currency: 'PKR',
+  currencyDisplay: 'code',
   maximumFractionDigits: 0,
 });
 

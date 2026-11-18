@@ -1,45 +1,51 @@
 import type { Config } from 'tailwindcss';
 
+/** Shared by rescheduled bookings and booked slots. */
+const SLATE_BLUE = { DEFAULT: '#3f6194', soft: '#e6ecf5', line: '#b4c5df' };
+/** Cancelled and rejected bookings, errors and invalid fields. */
+const MUTED_RED = { DEFAULT: '#a23b3b', soft: '#faedec', line: '#e8bdba' };
+
 const config: Config = {
   content: ['./src/**/*.{ts,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
         ink: {
-          50: '#f4f4f5',
-          100: '#e6e6e8',
-          200: '#cfcfd3',
-          300: '#a9a9b0',
-          400: '#7c7c85',
-          500: '#5b5b64',
-          600: '#43434b',
-          700: '#2d2d34',
-          800: '#1d1d22',
-          900: '#141417',
-          950: '#0b0b0d',
+          50: '#f5f5f4',
+          100: '#eceae6',
+          200: '#d9d5ce',
+          300: '#bdb7ae',
+          400: '#7a746b',
+          500: '#6b6660',
+          600: '#55524d',
+          700: '#3d3a36',
+          800: '#2a2826',
+          900: '#1c1c1c',
+          950: '#111111',
         },
         ivory: {
-          50: '#fdfcfa',
-          100: '#faf7f2',
-          200: '#f2ede4',
-          300: '#e6dfd1',
-          400: '#d3c9b5',
+          50: '#fbfaf7',
+          100: '#f7f4ee',
+          200: '#efeae0',
+          300: '#e5dfd3',
+          400: '#d3cab9',
         },
         gold: {
-          200: '#efe0b0',
-          300: '#e2c978',
-          400: '#d4af37',
-          500: '#b8932a',
-          600: '#9a7a1f',
-          700: '#7a5f14',
+          200: '#ede2ca',
+          300: '#cdb27e',
+          400: '#b8975a',
+          500: '#9c7c45',
+          600: '#85693a',
+          700: '#6e5630',
         },
         status: {
-          pending: '#8a5a00',
-          approved: '#1c6b43',
-          rejected: '#a12c3a',
-          cancelled: '#55555e',
-          completed: '#2b4f8c',
-          rescheduled: '#6b3f9c',
+          pending: { DEFAULT: '#8a5f1c', soft: '#f7edd8', line: '#e6ce9a' },
+          approved: { DEFAULT: '#286c4f', soft: '#e2f0e8', line: '#a9d3bd' },
+          rescheduled: SLATE_BLUE,
+          booked: SLATE_BLUE,
+          completed: { DEFAULT: '#55524d', soft: '#eceae6', line: '#cfcac2' },
+          cancelled: MUTED_RED,
+          rejected: MUTED_RED,
         },
       },
       fontFamily: {
@@ -51,9 +57,9 @@ const config: Config = {
         control: '0.5rem',
       },
       boxShadow: {
-        soft: '0 1px 2px rgba(11, 11, 13, 0.06), 0 8px 24px -12px rgba(11, 11, 13, 0.18)',
-        lift: '0 2px 4px rgba(11, 11, 13, 0.08), 0 18px 40px -16px rgba(11, 11, 13, 0.35)',
-        gold: '0 0 0 1px rgba(212, 175, 55, 0.5), 0 12px 32px -14px rgba(212, 175, 55, 0.45)',
+        soft: '0 1px 2px rgba(17, 17, 17, 0.06), 0 8px 24px -12px rgba(17, 17, 17, 0.18)',
+        lift: '0 2px 4px rgba(17, 17, 17, 0.08), 0 18px 40px -16px rgba(17, 17, 17, 0.35)',
+        gold: '0 0 0 1px rgba(184, 151, 90, 0.5), 0 12px 32px -14px rgba(184, 151, 90, 0.45)',
       },
       keyframes: {
         'fade-up': {

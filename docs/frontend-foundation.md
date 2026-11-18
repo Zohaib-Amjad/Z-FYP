@@ -4,7 +4,8 @@ Shared infrastructure for every page in `web/`. Later phases build on these conv
 
 ## Design language
 
-- Tokens live in `web/tailwind.config.ts`: `ink` (charcoal), `ivory` (warm off-white), `gold` (restrained accent), `status.*` (booking status colours), `font-display` (Cormorant Garamond) and `font-sans` (Inter) loaded through `next/font`, `rounded-card`, `rounded-control`, `shadow-soft|lift|gold`.
+- Tokens live in `web/tailwind.config.ts`: `ink` (charcoal), `ivory` (warm off-white), `gold` (restrained accent), `status.*` (booking status colours, each with `DEFAULT` text, `soft` background and `line` border shades; `status.booked` marks occupied slots), `font-display` (Cormorant Garamond) and `font-sans` (Inter) loaded through `next/font`, `rounded-card`, `rounded-control`, `shadow-soft|lift|gold`.
+- Palette: Onyx charcoal `ink-950` #111111 (header, footer, hero, admin sidebar), Ivory `ivory-100` #F7F4EE (customer page background), Champagne Gold `gold-400` #B8975A (primary buttons and accents, used sparingly), Deep Gold `gold-500` #9C7C45, and `gold-700` #6E5630 for small gold text on light backgrounds (WCAG AA). Admin content sits on neutral `ink-50` #F5F5F4. Status colours: Pending amber, Approved emerald, Rescheduled slate blue, Completed charcoal, Cancelled and Rejected muted red.
 - Gold on light surfaces uses `gold-700` for text (AA contrast); `gold-400` is reserved for fills behind `ink-950` text and for accents on dark surfaces. Dark surfaces carry the `on-dark` class so focus rings switch to a light gold.
 - Focus rings are global (`:focus-visible`), `prefers-reduced-motion` disables animation and smooth scrolling, and a skip link jumps to `#main-content`.
 

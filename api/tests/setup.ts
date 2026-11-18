@@ -11,3 +11,4 @@ process.env.DATABASE_URL_TEST ||= DEFAULT_TEST_DATABASE_URL;
 process.env.JWT_SECRET ||= DEFAULT_TEST_JWT_SECRET;
 process.env.UPLOAD_DIR = TEST_UPLOAD_DIR;
 process.env.MAX_UPLOAD_MB = '5';
+process.env.BUSINESS_TIME_ZONE = 'UTC';

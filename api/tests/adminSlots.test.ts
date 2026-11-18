@@ -85,7 +85,7 @@ describe('GET /api/admin/slots', () => {
   let inactive: { id: string };
 
   beforeEach(async () => {
-    manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     other = await createVehicle({ model: 'Flying Spur' });
     await linkVehicle(manchester.id, other.id);
     free = await addSlot(data, utcInstant(2, 9));
@@ -107,7 +107,7 @@ describe('GET /api/admin/slots', () => {
     const bookedItem = res.body.data.items[1];
     expect(bookedItem).toMatchObject({
       isActive: true,
-      dealership: { name: 'Prestige Mayfair', city: 'London' },
+      dealership: { name: 'LuxDrive Mayfair', city: 'London' },
       vehicle: { manufacturer: 'Porsche', model: '911 Carrera T' },
       activeBooking: {
         status: 'APPROVED',
@@ -329,7 +329,7 @@ describe('POST /api/admin/slots', () => {
   });
 
   it('refuses a vehicle that is not offered at the dealership', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     const notLinked = await staffPost(
       '/api/admin/slots',
       slotBody({ dealershipId: manchester.id }),
@@ -369,7 +369,7 @@ describe('POST /api/admin/slots', () => {
         expect(res.status).toBe(409);
         expect(res.body.error.code).toBe('SLOT_OVERLAP');
         expect(res.body.error.details[0].message).toContain(existing.id);
-        expect(res.body.error.details[0].message).toContain('Prestige Mayfair');
+        expect(res.body.error.details[0].message).toContain('LuxDrive Mayfair');
         expect(await prisma.timeSlot.count()).toBe(1);
       },
     );
@@ -389,7 +389,7 @@ describe('POST /api/admin/slots', () => {
     });
 
     it('rejects an overlap with the same vehicle at another dealership', async () => {
-      const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+      const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
       await linkVehicle(manchester.id, data.vehicle.id);
       const res = await staffPost('/api/admin/slots', slotBody({ dealershipId: manchester.id }));
 

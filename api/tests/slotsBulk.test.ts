@@ -178,7 +178,7 @@ describe('dry run', () => {
           id: existing.id,
           startAt: instant(monday, '10:00'),
           endAt: instant(monday, '11:00'),
-          dealershipName: 'Prestige Mayfair',
+          dealershipName: 'LuxDrive Mayfair',
         },
       },
     ]);
@@ -210,12 +210,12 @@ describe('clashes and skipped slots', () => {
   });
 
   it('detects clashes with slots of the same vehicle at another dealership', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, data.vehicle.id);
     await addSlot({ ...data, dealership: manchester }, new Date(instant(monday, '09:00')));
     const res = await post(body({ daysOfWeek: ['MON'] }));
 
-    expect(res.body.data.skipped[0].clashingSlot.dealershipName).toBe('Prestige Deansgate');
+    expect(res.body.data.skipped[0].clashingSlot.dealershipName).toBe('LuxDrive Deansgate');
   });
 
   it('ignores inactive slots and slots of other vehicles', async () => {
@@ -345,7 +345,7 @@ describe('validation', () => {
   });
 
   it('refuses a deactivated dealership or vehicle and a vehicle that is not offered there', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     const notOffered = await post(body({ dealershipId: manchester.id }));
     await prisma.dealership.update({
       where: { id: data.dealership.id },

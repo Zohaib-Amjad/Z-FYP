@@ -191,7 +191,7 @@ export function VehicleForm({ vehicle }: { vehicle?: AdminVehicleDetail }) {
                 )}
               </FormField>
               <FormField
-                label="Starting price (£)"
+                label="Starting price (PKR)"
                 hint="Leave blank to show “Price on request”."
                 error={errors.priceFrom?.message}
               >

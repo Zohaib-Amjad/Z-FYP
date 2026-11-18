@@ -36,7 +36,7 @@ beforeEach(async () => {
   await resetDatabase();
   data = await seedMinimalData();
   london = data.dealership;
-  manchester = await createDealership('Prestige Deansgate', 'Manchester');
+  manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
 
   audi = await createVehicle({
     manufacturer: 'Audi',
@@ -157,7 +157,7 @@ describe('GET /api/vehicles: basics', () => {
       manufacturer: 'Audi',
       priceFrom: 134000,
       primaryImage: null,
-      dealerships: [{ id: manchester.id, name: 'Prestige Deansgate', city: 'Manchester' }],
+      dealerships: [{ id: manchester.id, name: 'LuxDrive Deansgate', city: 'Manchester' }],
     });
     expect(typeof item.nextAvailableSlotAt).toBe('string');
   });
@@ -183,8 +183,8 @@ describe('GET /api/vehicles: basics', () => {
   });
 
   it('lists every dealership offering a vehicle, ordered by name, and hides unavailable links and inactive dealerships', async () => {
-    const inactive = await createDealership('Prestige Edinburgh', 'Edinburgh', { isActive: false });
-    const unavailable = await createDealership('Prestige Windsor', 'Windsor');
+    const inactive = await createDealership('LuxDrive Edinburgh', 'Edinburgh', { isActive: false });
+    const unavailable = await createDealership('LuxDrive Windsor', 'Windsor');
     await linkVehicle(inactive.id, bentley.id);
     await linkVehicle(unavailable.id, bentley.id, false);
     const res = await list('?model=Continental%20GT%20Speed');
@@ -295,8 +295,8 @@ describe('GET /api/vehicles: filters', () => {
   });
 
   it('does not match vehicles through unavailable links or inactive dealerships', async () => {
-    const inactive = await createDealership('Prestige Edinburgh', 'Edinburgh', { isActive: false });
-    const unavailable = await createDealership('Prestige Windsor', 'Windsor');
+    const inactive = await createDealership('LuxDrive Edinburgh', 'Edinburgh', { isActive: false });
+    const unavailable = await createDealership('LuxDrive Windsor', 'Windsor');
     await linkVehicle(inactive.id, audi.id);
     await linkVehicle(unavailable.id, audi.id, false);
 
@@ -615,11 +615,11 @@ describe('GET /api/vehicles/filters', () => {
   });
 
   it('only lists cities of active dealerships that offer an active vehicle', async () => {
-    await createDealership('Prestige Edinburgh', 'Edinburgh', { isActive: false });
-    const empty = await createDealership('Prestige Windsor', 'Windsor');
-    const unavailableOnly = await createDealership('Prestige Bath', 'Bath');
+    await createDealership('LuxDrive Edinburgh', 'Edinburgh', { isActive: false });
+    const empty = await createDealership('LuxDrive Windsor', 'Windsor');
+    const unavailableOnly = await createDealership('LuxDrive Bath', 'Bath');
     await linkVehicle(unavailableOnly.id, audi.id, false);
-    const inactiveVehicleOnly = await createDealership('Prestige Leeds', 'Leeds');
+    const inactiveVehicleOnly = await createDealership('LuxDrive Leeds', 'Leeds');
     await linkVehicle(inactiveVehicleOnly.id, lamborghini.id);
     void empty;
     const res = await request(app).get('/api/vehicles/filters');
@@ -698,12 +698,12 @@ describe('GET /api/vehicles/:id', () => {
     ]);
     expect(res.body.data.dealerships).toEqual([
       expect.objectContaining({
-        name: 'Prestige Deansgate',
+        name: 'LuxDrive Deansgate',
         city: 'Manchester',
         upcomingAvailableSlots: 1,
       }),
       expect.objectContaining({
-        name: 'Prestige Mayfair',
+        name: 'LuxDrive Mayfair',
         city: 'London',
         upcomingAvailableSlots: 2,
       }),
@@ -739,8 +739,8 @@ describe('GET /api/vehicles/:id', () => {
   });
 
   it('shows zero slots for a vehicle with none and leaves out unavailable or inactive dealerships', async () => {
-    const inactive = await createDealership('Prestige Edinburgh', 'Edinburgh', { isActive: false });
-    const unavailable = await createDealership('Prestige Windsor', 'Windsor');
+    const inactive = await createDealership('LuxDrive Edinburgh', 'Edinburgh', { isActive: false });
+    const unavailable = await createDealership('LuxDrive Windsor', 'Windsor');
     await linkVehicle(inactive.id, ferrari.id);
     await linkVehicle(unavailable.id, ferrari.id, false);
     const res = await request(app).get(`/api/vehicles/${ferrari.id}`);
