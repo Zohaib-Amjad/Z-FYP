@@ -45,7 +45,7 @@ export const seedMinimalData = async () => {
   });
   const dealership = await prisma.dealership.create({
     data: {
-      name: 'Prestige Mayfair',
+      name: 'LuxDrive Mayfair',
       address: '14 Berkeley Square',
       city: 'London',
       phone: '+44 20 7946 1000',

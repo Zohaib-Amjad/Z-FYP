@@ -130,7 +130,7 @@ export function historyHeadline(entry: Pick<BookingHistoryEntry, 'action' | 'toS
   return HEADLINES[entry.action] ?? STATUS_LABELS[entry.toStatus];
 }
 
-/** "Mon 10 Nov 2026, 10:00 at Prestige Mayfair" for a slot in a timeline entry. */
+/** "Mon 10 Nov 2026, 10:00 at LuxDrive Gulberg" for a slot in a timeline entry. */
 export function describeSlot(slot: HistorySlot): string {
   return `${formatDateTime(slot.startAt)} at ${slot.dealership.name}`;
 }

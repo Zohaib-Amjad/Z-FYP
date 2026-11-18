@@ -111,11 +111,11 @@ describe('vehicleSchema', () => {
 
 describe('dealershipSchema', () => {
   const dealership = {
-    name: 'Prestige Mayfair',
+    name: 'LuxDrive Mayfair',
     address: '14 Berkeley Square',
     city: 'London',
     phone: '+44 20 7946 1000',
-    email: 'Mayfair@Prestige.test',
+    email: 'Mayfair@LuxDrive.test',
     openingHours: 'Mon-Fri 09:00-18:00',
     description: '',
   };
@@ -123,7 +123,7 @@ describe('dealershipSchema', () => {
   it('accepts a valid dealership and normalises the payload', () => {
     expect(dealershipSchema.safeParse(dealership).success).toBe(true);
     expect(toDealershipPayload(dealership)).toMatchObject({
-      email: 'mayfair@prestige.test',
+      email: 'mayfair@luxdrive.test',
       description: null,
     });
   });

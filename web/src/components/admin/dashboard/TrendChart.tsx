@@ -17,10 +17,10 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import type { BookingsTrend } from '@/types';
 
 const SERIES = [
-  { key: 'pending', label: 'Pending', color: '#8a5a00' },
-  { key: 'confirmed', label: 'Confirmed', color: '#1c6b43' },
-  { key: 'completed', label: 'Completed', color: '#2b4f8c' },
-  { key: 'cancelled', label: 'Cancelled', color: '#8a8a94' },
+  { key: 'pending', label: 'Pending', color: '#c08a2e' },
+  { key: 'confirmed', label: 'Confirmed', color: '#2f7d5b' },
+  { key: 'completed', label: 'Completed', color: '#55524d' },
+  { key: 'cancelled', label: 'Cancelled', color: '#a23b3b' },
 ] as const;
 
 interface TrendChartProps {
@@ -66,21 +66,21 @@ export function TrendChart({ trend, failed = false, onRetry }: TrendChartProps) 
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
-                  <CartesianGrid vertical={false} stroke="#e6dfd1" />
+                  <CartesianGrid vertical={false} stroke="#e5dfd3" />
                   <XAxis
                     dataKey="label"
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: '#5b5b64' }}
+                    tick={{ fontSize: 11, fill: '#6b6660' }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: '#5b5b64' }}
+                    tick={{ fontSize: 11, fill: '#6b6660' }}
                   />
-                  <Tooltip cursor={{ fill: 'rgba(212,175,55,0.12)' }} />
+                  <Tooltip cursor={{ fill: 'rgba(184,151,90,0.12)' }} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
                   {SERIES.map(series => (
                     <Bar

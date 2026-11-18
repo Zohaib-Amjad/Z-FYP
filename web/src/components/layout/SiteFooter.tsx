@@ -16,7 +16,7 @@ export function SiteFooter() {
           <Logo tone="light" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-300">
             Private test drives in the world’s finest automobiles, arranged around your schedule at
-            showrooms in London, Manchester and Edinburgh.
+            showrooms in Lahore, Islamabad and Karachi.
           </p>
         </div>
         <nav aria-label="Footer">
@@ -49,7 +49,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-ink-800 py-5 text-center text-xs text-ink-400">
-        © {new Date().getFullYear()} Prestige Test Drive. All rights reserved.
+        © {new Date().getFullYear()} LuxDrive. All rights reserved.
       </div>
     </footer>
   );

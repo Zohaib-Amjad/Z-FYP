@@ -241,7 +241,7 @@ describe('CONCURRENCY: booking racing with deactivation', () => {
   it('never leaves an active booking at a dealership that was deactivated', async () => {
     const staff = { id: data.staff.id, role: 'STAFF' as const };
     for (let round = 0; round < 6; round += 1) {
-      const dealership = await createDealership(`Prestige Round ${round}`, `City ${round}`);
+      const dealership = await createDealership(`LuxDrive Round ${round}`, `City ${round}`);
       await linkVehicle(dealership.id, data.vehicle.id);
       const slot = await addSlot({ ...data, dealership }, utcInstant(40 + round, 10));
       const customer = (await makeCustomersOnce(200 + round))[0];

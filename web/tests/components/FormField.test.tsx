@@ -90,7 +90,7 @@ describe('PasswordInput and PasswordRules', () => {
   it('passes typed values through to the form library', () => {
     const onChange = vi.fn();
     render(<PasswordInput aria-label="Password" onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Prestige2026' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'LuxDrive2026' } });
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 });

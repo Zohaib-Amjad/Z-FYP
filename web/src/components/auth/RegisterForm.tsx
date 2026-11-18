@@ -39,7 +39,7 @@ export function RegisterForm({ next }: { next?: string }) {
         ...(drivingLicenseNumber ? { drivingLicenseNumber } : {}),
       });
       setUser(user);
-      toast.success(`Welcome to Prestige, ${user.firstName}. Your account is ready.`);
+      toast.success(`Welcome to LuxDrive, ${user.firstName}. Your account is ready.`);
       router.replace(safeRedirectTarget(next, '/vehicles'));
       router.refresh();
     },

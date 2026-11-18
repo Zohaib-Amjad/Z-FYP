@@ -1,6 +1,6 @@
 # Luxury Car Test-Drive Booking and Management System
 
-Prestige Test Drive is a full-stack web application that replaces phone calls, walk-ins and e-mail threads for luxury-car test drives with one centralised, conflict-free booking system. It has two interfaces over one PostgreSQL database:
+LuxDrive is a full-stack web application that replaces phone calls, walk-ins and e-mail threads for luxury-car test drives with one centralised, conflict-free booking system. It has two interfaces over one PostgreSQL database:
 
 - **Customer Portal** – browse and filter vehicles, pick a dealership, date and time slot, request a test drive, follow the status of every booking and receive notifications.
 - **Dealership Administration Portal** – authorised staff manage vehicles, dealerships, time slots, customers and bookings (approve, reject, reschedule, cancel, complete) from a dashboard.
@@ -85,7 +85,7 @@ Everything runs on localhost; there is no hosting, payment, map or third-party s
    npm run db:migrate
    ```
 
-5. **Load the demo data** (3 dealerships, 12 vehicles, about a thousand time slots, 8 accounts and sample bookings):
+5. **Load the demo data** (3 dealerships, 15 vehicles, about 1,300 time slots, 8 accounts and sample bookings):
 
    ```bash
    npm run db:seed
@@ -202,6 +202,8 @@ The API tests run against `DATABASE_URL_TEST` and need PostgreSQL running. The e
 | [docs/viva-prep.md](docs/viva-prep.md) | Viva questions and answers |
 | [docs/limitations-and-future-work.md](docs/limitations-and-future-work.md) | Known limits and next steps |
 | [docs/assumptions.md](docs/assumptions.md) | Business rules A1 to A11 and design decisions |
+| [docs/image-credits.md](docs/image-credits.md) | Photographers and licence of the demo vehicle photographs |
+| [docs/pricing-sources.md](docs/pricing-sources.md) | Why customers see no prices, and where the staff-only demo prices come from |
 
 ## Troubleshooting
 

@@ -75,7 +75,7 @@ export async function newCustomer(label: string, withLicence = true): Promise<Te
   await ok(api, 'post', '/api/auth/register', {
     ...customer,
     confirmPassword: customer.password,
-    phone: '+44 7700 900123',
+    phone: '+92 300 5550123',
     ...(withLicence ? { drivingLicenseNumber: `E2E${stamp}`.toUpperCase().slice(0, 16) } : {}),
   });
   return { ...customer, api };

@@ -7,7 +7,7 @@ import { ok } from '../utils/response';
 export const register = asyncHandler(async (req, res) => {
   const { user, token } = await registerCustomer(req.body);
   setAuthCookie(res, token);
-  ok(res, user, 'Welcome to Prestige. Your account has been created.', 201);
+  ok(res, user, 'Welcome to LuxDrive. Your account has been created.', 201);
 });
 
 export const login = asyncHandler(async (req, res) => {

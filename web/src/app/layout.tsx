@@ -6,13 +6,14 @@ import './globals.css';
 
 const display = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  weight: ['500', '600'],
   variable: '--font-display',
   display: 'swap',
 });
 
 const sans = Inter({
   subsets: ['latin'],
+  weight: ['400', '500', '600'],
   variable: '--font-sans',
   display: 'swap',
 });
@@ -20,15 +21,15 @@ const sans = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: {
-    default: 'Prestige Test Drive | Luxury Automotive Appointments',
-    template: '%s | Prestige Test Drive',
+    default: 'LuxDrive | Luxury Automotive Appointments',
+    template: '%s | LuxDrive',
   },
   description:
     'Reserve a private test drive in the world’s most coveted automobiles. Choose your vehicle, showroom and time; our specialists take care of the rest.',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0b0b0d',
+  themeColor: '#111111',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

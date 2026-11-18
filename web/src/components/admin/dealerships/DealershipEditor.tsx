@@ -12,6 +12,7 @@ import { api, ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { AdminDealership } from '@/types';
 import { DealershipForm } from './DealershipForm';
+import { DealershipPhoto } from './DealershipPhoto';
 
 export function DealershipEditor({ dealershipId }: { dealershipId: string }) {
   const [dialog, setDialog] = useState(false);
@@ -64,6 +65,8 @@ export function DealershipEditor({ dealershipId }: { dealershipId: string }) {
           {dealership.isActive ? 'Deactivate showroom' : 'Reactivate showroom'}
         </Button>
       </header>
+
+      <DealershipPhoto dealership={dealership} />
 
       <DealershipForm key={dealership.updatedAt} dealership={dealership} />
 

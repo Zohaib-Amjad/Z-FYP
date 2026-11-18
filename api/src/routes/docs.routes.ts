@@ -32,7 +32,7 @@ export const createDocsRouter = (): Router => {
   router.use(
     '/',
     swaggerUi.serve,
-    swaggerUi.setup(document, { customSiteTitle: 'Prestige Test Drive API' }),
+    swaggerUi.setup(document, { customSiteTitle: 'LuxDrive API' }),
   );
   return router;
 };

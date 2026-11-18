@@ -6,6 +6,8 @@ const MIN_VEHICLE_YEAR = 1990;
 const MAX_FEATURES = 20;
 const MAX_FEATURE_LENGTH = 60;
 const MAX_DEALERSHIP_LINKS = 100;
+/** Matches the price_from column, numeric(12, 2). */
+const MAX_PRICE = 9_999_999_999;
 
 const hasAtMostTwoDecimals = (value: number): boolean =>
   Math.abs(value * 100 - Math.round(value * 100)) < 1e-6;
@@ -75,7 +77,7 @@ const vehicleFields = {
   priceFrom: z
     .number()
     .min(0, 'Price cannot be negative')
-    .max(99_999_999, 'Price is too large')
+    .max(MAX_PRICE, 'Price is too large')
     .refine(hasAtMostTwoDecimals, 'Use at most two decimal places')
     .nullable(),
   description: text('Description', 10, 5000),

@@ -36,7 +36,7 @@ test('E2E-09 staff create a vehicle with a photo, assign a showroom and generate
   await field(staffPage, 'Engine').fill('Dual-motor electric');
   await field(staffPage, 'Power (hp)').fill('612');
   await field(staffPage, 'Seats').fill('4');
-  await field(staffPage, 'Starting price (£)').fill('99000');
+  await field(staffPage, 'Starting price (PKR)').fill('99000000');
   await field(staffPage, 'Description').fill('A vehicle created during the end-to-end test run.');
   await staffPage.getByRole('button', { name: 'Add vehicle' }).click();
   await expect(staffPage).toHaveURL(/\/admin\/vehicles\/[0-9a-f-]{36}$/);

@@ -6,6 +6,8 @@ import {
   getPublicDealership,
   listAdminDealerships,
   listPublicDealerships,
+  removeDealershipImage,
+  setDealershipImage,
   updateDealership,
 } from '../services/dealership.service';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -46,4 +48,12 @@ export const deactivate = asyncHandler(async (req, res) => {
 
 export const activate = asyncHandler(async (req, res) => {
   ok(res, await activateDealership(req.params.id), 'Dealership activated');
+});
+
+export const uploadImage = asyncHandler(async (req, res) => {
+  ok(res, await setDealershipImage(req.params.id, req.file), 'Showroom photograph updated');
+});
+
+export const removeImage = asyncHandler(async (req, res) => {
+  ok(res, await removeDealershipImage(req.params.id), 'Showroom photograph removed');
 });

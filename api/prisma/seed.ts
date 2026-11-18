@@ -13,7 +13,7 @@ import {
   SampleStep,
   VehicleSeed,
 } from './seed-data';
-import { writeSeedImageFiles } from './seed-images';
+import { writeSeedDealershipImage, writeSeedImageFiles } from './seed-images';
 
 const prisma = new PrismaClient();
 
@@ -97,8 +97,15 @@ const seedUsers = async (passwordHash: string) => {
 const seedDealerships = async () => {
   const result = [];
   for (const data of DEALERSHIPS) {
+    const imageUrl = writeSeedDealershipImage(uploadSeedDir, data.name);
     const existing = await prisma.dealership.findFirst({ where: { name: data.name } });
-    result.push(existing ?? (await prisma.dealership.create({ data })));
+    if (existing && !existing.imageUrl && imageUrl) {
+      result.push(
+        await prisma.dealership.update({ where: { id: existing.id }, data: { imageUrl } }),
+      );
+    } else {
+      result.push(existing ?? (await prisma.dealership.create({ data: { ...data, imageUrl } })));
+    }
   }
   return result;
 };
@@ -119,7 +126,7 @@ const writeVehicleImages = async (vehicleId: string, vehicle: VehicleSeed) => {
 
 const seedVehicles = async (dealerships: { id: string }[]) => {
   const result = [];
-  for (const [index, { hues: _hues, ...data }] of VEHICLES.entries()) {
+  for (const [index, { paintHex: _paintHex, ...data }] of VEHICLES.entries()) {
     const found = await prisma.vehicle.findFirst({
       where: { manufacturer: data.manufacturer, model: data.model, year: data.year },
     });

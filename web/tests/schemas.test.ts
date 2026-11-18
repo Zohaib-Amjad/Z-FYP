@@ -16,8 +16,8 @@ const validRegistration = {
   email: 'amelia@example.com',
   phone: '+44 7700 900111',
   drivingLicenseNumber: '',
-  password: 'Prestige2026',
-  confirmPassword: 'Prestige2026',
+  password: 'LuxDrive2026',
+  confirmPassword: 'LuxDrive2026',
 };
 
 const messagesFor = (result: {

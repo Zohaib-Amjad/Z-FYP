@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { CalendarClock, Car, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { enumLabel, formatDateTime, formatPrice } from '@/lib/format';
+import { enumLabel, formatDateTime } from '@/lib/format';
 import type { VehicleListItem } from '@/types';
 
 interface VehicleCardProps {
@@ -74,18 +74,12 @@ export function VehicleCard({
                 : 'No slots available right now'}
             </p>
           ) : null}
-          <div className="flex items-end justify-between gap-3 border-t border-ivory-300 pt-3">
-            <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-600">
-              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span className="truncate">
-                {cities.length > 0 ? cities.join(' · ') : 'Availability on request'}
-              </span>
-            </p>
-            <p className="shrink-0 text-sm">
-              <span className="text-ink-500">From </span>
-              <span className="font-semibold text-ink-900">{formatPrice(vehicle.priceFrom)}</span>
-            </p>
-          </div>
+          <p className="flex min-w-0 items-center gap-1.5 border-t border-ivory-300 pt-3 text-xs text-ink-600">
+            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              {cities.length > 0 ? cities.join(' · ') : 'Availability on request'}
+            </span>
+          </p>
         </div>
       </div>
     </Card>

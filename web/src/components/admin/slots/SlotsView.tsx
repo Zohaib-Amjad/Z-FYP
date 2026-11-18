@@ -448,9 +448,9 @@ function CalendarSection({
                           className={cn(
                             'w-full rounded-control border px-2 py-1.5 text-left text-xs transition-colors hover:border-ink-900',
                             slot.activeBooking
-                              ? 'border-[#b2c6e6] bg-[#e4ecf8]'
+                              ? 'border-status-booked-line bg-status-booked-soft'
                               : slot.isActive
-                                ? 'border-[#a8d6bb] bg-[#e3f4ea]'
+                                ? 'border-status-approved-line bg-status-approved-soft'
                                 : 'border-ink-300 bg-ink-100',
                           )}
                         >

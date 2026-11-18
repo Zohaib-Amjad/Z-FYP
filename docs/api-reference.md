@@ -1,6 +1,6 @@
 # API reference
 
-Generated from `api/openapi.yaml` by `npm run docs:api --workspace=api`; do not edit by hand. 63 operations, version 1.0.0.
+Generated from `api/openapi.yaml` by `npm run docs:api --workspace=api`; do not edit by hand. 65 operations, version 1.0.0.
 
 **Interactive documentation:** with the API running in development, open <http://localhost:4000/api/docs> (Swagger UI). It is not served in production.
 
@@ -37,7 +37,7 @@ other endpoint from this page; the browser sends the session cookie automaticall
 | [Admin - Bookings](#admin-bookings) | 7 |
 | [Admin - Dashboard](#admin-dashboard) | 3 |
 | [Admin - Vehicles](#admin-vehicles) | 11 |
-| [Admin - Dealerships](#admin-dealerships) | 6 |
+| [Admin - Dealerships](#admin-dealerships) | 8 |
 | [Admin - Slots](#admin-slots) | 7 |
 | [Admin - Customers](#admin-customers) | 3 |
 | [Admin - Staff](#admin-staff) | 2 |
@@ -102,7 +102,7 @@ Example:
   "email": "charlotte.ainsworth@example.com",
   "password": "Velvet2026",
   "confirmPassword": "Velvet2026",
-  "phone": "+44 7700 900777",
+  "phone": "+92 300 5550777",
   "drivingLicenseNumber": "AINSW901015C99XY"
 }
 ```
@@ -155,7 +155,7 @@ Example success response:
     "role": "CUSTOMER",
     "firstName": "Amelia",
     "lastName": "Hart",
-    "phone": "+44 7700 900111",
+    "phone": "+92 300 5550111",
     "drivingLicenseNumber": "HART9503126A99XY",
     "isActive": true,
     "lastLoginAt": "2030-03-01T09:30:00.000Z",
@@ -213,7 +213,7 @@ Example success response:
     "role": "CUSTOMER",
     "firstName": "Amelia",
     "lastName": "Hart",
-    "phone": "+44 7700 900111",
+    "phone": "+92 300 5550111",
     "drivingLicenseNumber": "HART9503126A99XY",
     "isActive": true,
     "lastLoginAt": "2030-03-01T09:30:00.000Z",
@@ -248,7 +248,7 @@ Example success response:
     "role": "CUSTOMER",
     "firstName": "Amelia",
     "lastName": "Hart",
-    "phone": "+44 7700 900111",
+    "phone": "+92 300 5550111",
     "drivingLicenseNumber": "HART9503126A99XY",
     "isActive": true,
     "lastLoginAt": "2030-03-01T09:30:00.000Z",
@@ -283,7 +283,7 @@ Example:
 {
   "firstName": "Amelia",
   "lastName": "Hart-Lowe",
-  "phone": "+44 7700 900999"
+  "phone": "+92 300 5550999"
 }
 ```
 
@@ -306,7 +306,7 @@ Example success response:
     "role": "CUSTOMER",
     "firstName": "Amelia",
     "lastName": "Hart",
-    "phone": "+44 7700 900111",
+    "phone": "+92 300 5550111",
     "drivingLicenseNumber": "HART9503126A99XY",
     "isActive": true,
     "lastLoginAt": "2030-03-01T09:30:00.000Z",
@@ -431,8 +431,8 @@ Example success response:
         "dealerships": [
           {
             "id": "3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34",
-            "name": "Prestige Mayfair",
-            "city": "London"
+            "name": "LuxDrive Gulberg",
+            "city": "Lahore"
           }
         ],
         "nextAvailableSlotAt": "2030-03-12T10:00:00.000Z"
@@ -556,7 +556,7 @@ Example success response:
   "success": true,
   "data": {
     "vehicleId": "7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46",
-    "timeZone": "Europe/London",
+    "timeZone": "Asia/Karachi",
     "range": {
       "from": "2030-03-10T09:00:00.000Z",
       "to": "2030-03-24T09:00:00.000Z"
@@ -572,8 +572,8 @@ Example success response:
           "endAt": "2030-03-12T11:00:00.000Z",
           "dealership": {
             "id": "3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34",
-            "name": "Prestige Mayfair",
-            "city": "London"
+            "name": "LuxDrive Gulberg",
+            "city": "Lahore"
           }
         }
       ]
@@ -714,10 +714,10 @@ Example success response:
     "cancellationWindowHours": 24,
     "dealership": {
       "id": "3b2eeacc-b2df-4b3d-a64c-4177a9369608",
-      "name": "Prestige Mayfair",
-      "address": "14 Berkeley Square, Mayfair",
-      "city": "London",
-      "phone": "+44 20 7946 1000",
+      "name": "LuxDrive Gulberg",
+      "address": "42 Main Boulevard, Gulberg III",
+      "city": "Lahore",
+      "phone": "+92 42 3575 1000",
       "openingHours": "Mon-Fri 09:00-18:00"
     },
     "vehicle": {
@@ -1666,13 +1666,13 @@ Example:
 
 ```json
 {
-  "name": "Prestige Edinburgh",
-  "address": "9 Charlotte Square",
-  "city": "Edinburgh",
-  "phone": "+44 131 496 3000",
-  "email": "edinburgh@prestige.test",
+  "name": "LuxDrive DHA",
+  "address": "27 Khayaban-e-Shahbaz, DHA Phase 6",
+  "city": "Karachi",
+  "phone": "+92 21 3584 3000",
+  "email": "dha@luxdrive.test",
   "openingHours": "Mon-Fri 09:00-17:30, Sat 09:00-13:00",
-  "description": "A refined Georgian-townhouse showroom."
+  "description": "A refined showroom moments from the Clifton seafront."
 }
 ```
 
@@ -1738,7 +1738,7 @@ Example:
 
 ```json
 {
-  "phone": "+44 20 7946 1999",
+  "phone": "+92 42 3575 1999",
   "openingHours": "Mon-Sat 10:00-19:00"
 }
 ```
@@ -1784,6 +1784,62 @@ Blocked with `409 HAS_ACTIVE_BOOKINGS` (and the count) while future active booki
 Reactivate a dealership
 
 Access: **Staff only**
+
+**Parameters**
+
+| Name | In | Required | Type | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | yes | string, uuid |  |
+
+**Responses**
+
+| Status | Meaning |
+| --- | --- |
+| 200 | The dealership. |
+| 401 | Not signed in, or the session is invalid or expired (`UNAUTHENTICATED`). |
+| 403 | The signed-in role may not use this endpoint (`FORBIDDEN`). |
+| 404 | The resource does not exist, or belongs to someone else (`NOT_FOUND`). |
+| 422 | The request failed validation (`VALIDATION_ERROR`), with one detail per problem field. |
+
+### POST `/api/admin/dealerships/{id}/image`
+
+Upload or replace the showroom photograph
+
+Access: **Staff only**
+
+Sends one JPEG, PNG or WebP image (checked by content, not just the extension) in the `image` field. The file is stored under a random name; an earlier uploaded photograph is deleted.
+
+**Parameters**
+
+| Name | In | Required | Type | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | yes | string, uuid |  |
+
+**Request body**
+
+Content type: `multipart/form-data` (required)
+
+| Field | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `image` | yes | string, binary |  |
+
+**Responses**
+
+| Status | Meaning |
+| --- | --- |
+| 200 | The dealership. |
+| 401 | Not signed in, or the session is invalid or expired (`UNAUTHENTICATED`). |
+| 403 | The signed-in role may not use this endpoint (`FORBIDDEN`). |
+| 404 | The resource does not exist, or belongs to someone else (`NOT_FOUND`). |
+| 422 | A file is the wrong type, too large, or over the limits (`UPLOAD_INVALID`). |
+
+### DELETE `/api/admin/dealerships/{id}/image`
+
+Remove the showroom photograph
+
+Access: **Staff only**
+
+Clears `imageUrl`. A photograph uploaded through the portal is also deleted from disk.
 
 **Parameters**
 
@@ -1923,7 +1979,7 @@ Example:
   "dailyEndTime": "12:00",
   "durationMinutes": 60,
   "breakMinutes": 30,
-  "timeZone": "Europe/London"
+  "timeZone": "Asia/Karachi"
 }
 ```
 
@@ -2197,7 +2253,7 @@ Example:
   "lastName": "Ashworth",
   "email": "marcus.ashworth@prestige.test",
   "password": "Temporary2026",
-  "phone": "+44 20 7946 0102"
+  "phone": "+92 42 3575 0102"
 }
 ```
 

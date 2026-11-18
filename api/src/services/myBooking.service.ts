@@ -161,7 +161,7 @@ const loadTimeline = async (bookingId: string, customerId: string) => {
     changedBy:
       changedBy.id === customerId
         ? { role: changedBy.role, label: 'You' }
-        : { role: changedBy.role, label: 'Prestige team' },
+        : { role: changedBy.role, label: 'LuxDrive team' },
   }));
 };
 

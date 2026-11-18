@@ -45,7 +45,7 @@ const iso = (date: Date): string => encodeURIComponent(date.toISOString());
 
 async function buildFixture(): Promise<void> {
   const mayfair = data.dealership;
-  const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+  const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
   const audi = await createVehicle({ manufacturer: 'Audi', model: 'RS e-tron GT' });
   const bentley = await createVehicle({ manufacturer: 'Bentley', model: 'Continental GT Speed' });
   for (const vehicle of [audi, bentley]) {
@@ -120,7 +120,7 @@ describe('GET /api/admin/bookings: basics', () => {
         phone: '+44 7700 900111',
       },
       vehicle: { manufacturer: 'Audi', model: 'RS e-tron GT', name: 'Audi RS e-tron GT' },
-      dealership: { name: 'Prestige Deansgate', city: 'Manchester' },
+      dealership: { name: 'LuxDrive Deansgate', city: 'Manchester' },
       slot: { startAt: utcInstant(5, 10).toISOString(), endAt: utcInstant(5, 11).toISOString() },
       customerNote: null,
       staffNote: null,
@@ -425,7 +425,7 @@ describe('GET /api/admin/bookings/:id', () => {
         color: 'Gentian Blue',
       },
       dealership: {
-        name: 'Prestige Mayfair',
+        name: 'LuxDrive Mayfair',
         email: 'mayfair@example.test',
         openingHours: 'Mon-Sat 09:00-18:00',
       },
@@ -450,7 +450,7 @@ describe('GET /api/admin/bookings/:id', () => {
       fromStatus: 'APPROVED',
       toStatus: 'RESCHEDULED',
       note: 'Vehicle service',
-      oldSlot: { id: slot.id, dealership: { name: 'Prestige Mayfair' } },
+      oldSlot: { id: slot.id, dealership: { name: 'LuxDrive Mayfair' } },
       newSlot: { id: target.id, startAt: utcInstant(22, 14).toISOString() },
     });
     expect(JSON.stringify(res.body)).not.toContain('passwordHash');

@@ -6,7 +6,7 @@ const app = createApp();
 
 const server = app.listen(env.PORT, () => {
   console.log(
-    `Prestige Test Drive API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`,
+    `LuxDrive API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`,
   );
 });
 

@@ -145,7 +145,7 @@ describe('every status change creates exactly one notification for the booking c
     });
     expect(mine[0].bookingId).not.toBeNull();
     expect(mine[0].message).toContain('Porsche 911 Carrera T');
-    expect(mine[0].message).toContain('Prestige Mayfair');
+    expect(mine[0].message).toContain('LuxDrive Mayfair');
     expect(mine[0].message).toMatch(/\d{1,2} \w+ \d{4}, \d\d:\d\d to \d\d:\d\d UTC/);
     for (const fragment of flow.expectInMessage) expect(mine[0].message).toContain(fragment);
     expect(await notificationsFor(data.staff.id)).toHaveLength(0);
@@ -269,7 +269,7 @@ describe('emails', () => {
       expect(mail.subject.startsWith(flow.title)).toBe(true);
       expect(mail.subject).toContain('Porsche 911 Carrera T');
       expect(mail.text).toContain('Dear Amelia,');
-      expect(mail.html).toContain('PRESTIGE');
+      expect(mail.html).toContain('LUXDRIVE');
       for (const fragment of flow.expectInMessage) {
         expect(mail.text).toContain(fragment);
         expect(mail.html).toContain(fragment.replace(/'/g, '&#39;'));

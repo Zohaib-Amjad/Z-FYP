@@ -18,11 +18,11 @@ let staffCookie: string;
 let customerCookie: string;
 
 const validBody = {
-  name: 'Prestige Edinburgh',
+  name: 'LuxDrive Edinburgh',
   address: '9 Charlotte Square',
   city: 'Edinburgh',
   phone: '+44 131 496 3000',
-  email: 'Edinburgh@Prestige.test',
+  email: 'Edinburgh@LuxDrive.test',
   openingHours: 'Mon-Fri 09:00-17:30, Sat 09:00-13:00',
 };
 
@@ -49,19 +49,19 @@ const fieldsOf = (res: request.Response): string[] =>
 
 describe('public: GET /api/dealerships', () => {
   it('lists active dealerships without authentication and hides internal fields', async () => {
-    await createDealership('Prestige Deansgate', 'Manchester', { isActive: false });
+    await createDealership('LuxDrive Deansgate', 'Manchester', { isActive: false });
     const res = await request(app).get('/api/dealerships');
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
-    expect(res.body.data[0]).toMatchObject({ id: data.dealership.id, name: 'Prestige Mayfair' });
+    expect(res.body.data[0]).toMatchObject({ id: data.dealership.id, name: 'LuxDrive Mayfair' });
     expect(res.body.data[0]).not.toHaveProperty('isActive');
     expect(res.body.data[0]).not.toHaveProperty('createdAt');
   });
 
   it('orders by city then name', async () => {
-    await createDealership('Prestige Deansgate', 'Manchester');
-    await createDealership('Prestige Edinburgh', 'Edinburgh');
+    await createDealership('LuxDrive Deansgate', 'Manchester');
+    await createDealership('LuxDrive Edinburgh', 'Edinburgh');
     const res = await request(app).get('/api/dealerships');
 
     expect(res.body.data.map((d: { city: string }) => d.city)).toEqual([
@@ -72,15 +72,15 @@ describe('public: GET /api/dealerships', () => {
   });
 
   it('filters by city, ignoring case', async () => {
-    await createDealership('Prestige Deansgate', 'Manchester');
+    await createDealership('LuxDrive Deansgate', 'Manchester');
     const res = await request(app).get('/api/dealerships?city=MANCHESTER');
 
-    expect(res.body.data.map((d: { name: string }) => d.name)).toEqual(['Prestige Deansgate']);
+    expect(res.body.data.map((d: { name: string }) => d.name)).toEqual(['LuxDrive Deansgate']);
   });
 
   it('filters by the vehicle on offer', async () => {
-    const elsewhere = await createDealership('Prestige Deansgate', 'Manchester');
-    const unavailable = await createDealership('Prestige Edinburgh', 'Edinburgh');
+    const elsewhere = await createDealership('LuxDrive Deansgate', 'Manchester');
+    const unavailable = await createDealership('LuxDrive Edinburgh', 'Edinburgh');
     await linkVehicle(unavailable.id, data.vehicle.id, false);
     const res = await request(app).get(`/api/dealerships?vehicleId=${data.vehicle.id}`);
 
@@ -89,7 +89,7 @@ describe('public: GET /api/dealerships', () => {
   });
 
   it('leaves out inactive dealerships even when they offer the vehicle', async () => {
-    const inactive = await createDealership('Prestige Deansgate', 'Manchester', {
+    const inactive = await createDealership('LuxDrive Deansgate', 'Manchester', {
       isActive: false,
     });
     await linkVehicle(inactive.id, data.vehicle.id);
@@ -130,11 +130,11 @@ describe('public: GET /api/dealerships/:id', () => {
     const res = await request(app).get(`/api/dealerships/${data.dealership.id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({ name: 'Prestige Mayfair', city: 'London' });
+    expect(res.body.data).toMatchObject({ name: 'LuxDrive Mayfair', city: 'London' });
   });
 
   it('returns 404 for an inactive or unknown dealership and 422 for a malformed id', async () => {
-    const inactive = await createDealership('Prestige Deansgate', 'Manchester', {
+    const inactive = await createDealership('LuxDrive Deansgate', 'Manchester', {
       isActive: false,
     });
 
@@ -178,8 +178,8 @@ describe('admin: access control', () => {
 
 describe('admin: GET /api/admin/dealerships', () => {
   beforeEach(async () => {
-    await createDealership('Prestige Deansgate', 'Manchester', { isActive: false });
-    await createDealership('Prestige Edinburgh', 'Edinburgh');
+    await createDealership('LuxDrive Deansgate', 'Manchester', { isActive: false });
+    await createDealership('LuxDrive Edinburgh', 'Edinburgh');
   });
 
   it('includes inactive dealerships and the vehicle count', async () => {
@@ -195,7 +195,7 @@ describe('admin: GET /api/admin/dealerships', () => {
   it('searches by name, city and address, case-insensitively', async () => {
     const byCity = await staffGet('/api/admin/dealerships?q=manchester');
     const byName = await staffGet('/api/admin/dealerships?q=EDINBURGH');
-    const byWords = await staffGet('/api/admin/dealerships?q=prestige%20london');
+    const byWords = await staffGet('/api/admin/dealerships?q=luxdrive%20london');
 
     expect(byCity.body.data.items.map((d: { city: string }) => d.city)).toEqual(['Manchester']);
     expect(byName.body.data.items.map((d: { city: string }) => d.city)).toEqual(['Edinburgh']);
@@ -259,14 +259,14 @@ describe('admin: POST /api/admin/dealerships', () => {
   it('creates an active dealership, trimming and normalising input', async () => {
     const res = await staffPost('/api/admin/dealerships', {
       ...validBody,
-      name: '  Prestige Edinburgh ',
+      name: '  LuxDrive Edinburgh ',
       description: ' A refined showroom. ',
     });
 
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({
-      name: 'Prestige Edinburgh',
-      email: 'edinburgh@prestige.test',
+      name: 'LuxDrive Edinburgh',
+      email: 'edinburgh@luxdrive.test',
       description: 'A refined showroom.',
       isActive: true,
       vehicleCount: 0,
@@ -322,7 +322,7 @@ describe('admin: POST /api/admin/dealerships', () => {
   it('rejects a duplicate name in the same city regardless of case', async () => {
     const res = await staffPost('/api/admin/dealerships', {
       ...validBody,
-      name: 'PRESTIGE MAYFAIR',
+      name: 'LUXDRIVE MAYFAIR',
       city: 'london',
     });
 
@@ -335,14 +335,14 @@ describe('admin: POST /api/admin/dealerships', () => {
   it('allows the same name in a different city', async () => {
     const res = await staffPost('/api/admin/dealerships', {
       ...validBody,
-      name: 'Prestige Mayfair',
+      name: 'LuxDrive Mayfair',
     });
 
     expect(res.status).toBe(201);
   });
 
   it('is backed by a database unique index', async () => {
-    await expect(createDealership('prestige mayfair', 'LONDON')).rejects.toMatchObject({
+    await expect(createDealership('luxdrive mayfair', 'LONDON')).rejects.toMatchObject({
       code: 'P2002',
     });
   });
@@ -353,7 +353,7 @@ describe('admin: PATCH /api/admin/dealerships/:id', () => {
 
   it('updates any field', async () => {
     const res = await staffPatch(url(), {
-      name: 'Prestige Berkeley Square',
+      name: 'LuxDrive Berkeley Square',
       address: '15 Berkeley Square',
       city: 'London',
       phone: '+44 20 7946 1999',
@@ -364,7 +364,7 @@ describe('admin: PATCH /api/admin/dealerships/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({
-      name: 'Prestige Berkeley Square',
+      name: 'LuxDrive Berkeley Square',
       address: '15 Berkeley Square',
       phone: '+44 20 7946 1999',
       email: 'berkeley@prestige.test',
@@ -381,19 +381,19 @@ describe('admin: PATCH /api/admin/dealerships/:id', () => {
     const res = await staffPatch(url(), { description: null });
 
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({ description: null, name: 'Prestige Mayfair' });
+    expect(res.body.data).toMatchObject({ description: null, name: 'LuxDrive Mayfair' });
   });
 
   it('allows re-saving the dealership own name and city', async () => {
-    const res = await staffPatch(url(), { name: 'prestige mayfair', city: 'London' });
+    const res = await staffPatch(url(), { name: 'luxdrive mayfair', city: 'London' });
 
     expect(res.status).toBe(200);
   });
 
   it('rejects a rename or move that collides with another dealership', async () => {
-    await createDealership('Prestige Deansgate', 'Manchester');
-    await createDealership('Prestige Mayfair', 'Manchester');
-    const rename = await staffPatch(url(), { name: 'Prestige Deansgate', city: 'Manchester' });
+    await createDealership('LuxDrive Deansgate', 'Manchester');
+    await createDealership('LuxDrive Mayfair', 'Manchester');
+    const rename = await staffPatch(url(), { name: 'LuxDrive Deansgate', city: 'Manchester' });
     const move = await staffPatch(url(), { city: 'Manchester' });
 
     expect(rename.status).toBe(409);
@@ -416,7 +416,7 @@ describe('admin: PATCH /api/admin/dealerships/:id', () => {
 
   it('returns 404 for an unknown dealership', async () => {
     const res = await staffPatch('/api/admin/dealerships/0bbe7e55-75e7-4355-b1e3-af30b7b9ee11', {
-      name: 'Prestige Windsor',
+      name: 'LuxDrive Windsor',
     });
 
     expect(res.status).toBe(404);
@@ -475,7 +475,7 @@ describe('admin: deactivate and activate', () => {
     await createBooking(data.customer.id, cancelled.id, 'CANCELLED');
     await createBooking(data.customer.id, completed.id, 'REJECTED');
 
-    const other = await createDealership('Prestige Deansgate', 'Manchester');
+    const other = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(other.id, data.vehicle.id);
     const elsewhere = await createSlot({ ...data, dealership: other }, 9, 14);
     await createBooking(data.customer.id, elsewhere.id, 'PENDING');

@@ -10,6 +10,17 @@ export interface FileCheck {
 
 const megabytes = (bytes: number): string => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
+/** Why a single file cannot be uploaded as an image, or null when its type and size are fine. */
+export function imageFileProblem(file: File): string | null {
+  if (!(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
+    return 'Only JPEG, PNG or WebP images are accepted.';
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return `This image is ${megabytes(file.size)}; the limit is ${megabytes(MAX_IMAGE_BYTES)}.`;
+  }
+  return null;
+}
+
 /** Client-side check of files chosen for upload; the server repeats it on the real file content. */
 export function checkImageFiles(files: File[], existingCount: number): FileCheck {
   const accepted: File[] = [];
@@ -17,13 +28,9 @@ export function checkImageFiles(files: File[], existingCount: number): FileCheck
   const room = Math.min(MAX_FILES_PER_UPLOAD, MAX_IMAGES_PER_VEHICLE - existingCount);
 
   for (const file of files) {
-    if (!(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
-      rejected.push({ name: file.name, reason: 'Only JPEG, PNG or WebP images are accepted.' });
-    } else if (file.size > MAX_IMAGE_BYTES) {
-      rejected.push({
-        name: file.name,
-        reason: `This image is ${megabytes(file.size)}; the limit is ${megabytes(MAX_IMAGE_BYTES)}.`,
-      });
+    const problem = imageFileProblem(file);
+    if (problem) {
+      rejected.push({ name: file.name, reason: problem });
     } else if (accepted.length >= room) {
       rejected.push({
         name: file.name,

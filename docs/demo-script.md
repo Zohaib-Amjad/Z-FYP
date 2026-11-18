@@ -1,6 +1,6 @@
 # Demo script (10 minutes)
 
-A rehearsed walkthrough of Prestige Test Drive with exact clicks and talking points. Time the first rehearsal and adjust the talking points, not the clicks.
+A rehearsed walkthrough of LuxDrive with exact clicks and talking points. Time the first rehearsal and adjust the talking points, not the clicks.
 
 ## Before you start (2 minutes, not counted)
 

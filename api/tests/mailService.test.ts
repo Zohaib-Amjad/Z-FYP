@@ -73,7 +73,7 @@ describe('mail service', () => {
         SMTP_PORT: 465,
         SMTP_USER: 'mailer',
         SMTP_PASS: 'secret',
-        MAIL_FROM: 'Prestige <hello@prestige.test>',
+        MAIL_FROM: 'LuxDrive <hello@prestige.test>',
       },
       sendMailMock,
     );
@@ -90,7 +90,7 @@ describe('mail service', () => {
       }),
     );
     expect(sendMailMock).toHaveBeenCalledWith({
-      from: 'Prestige <hello@prestige.test>',
+      from: 'LuxDrive <hello@prestige.test>',
       ...message,
     });
   });

@@ -502,8 +502,8 @@ describe('email address validation (mail-library advisory)', () => {
       lastName: 'Check',
       email,
       phone: '+44 7700 900500',
-      password: 'Prestige2026',
-      confirmPassword: 'Prestige2026',
+      password: 'LuxDrive2026',
+      confirmPassword: 'LuxDrive2026',
     });
 
   it.each([

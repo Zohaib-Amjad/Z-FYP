@@ -134,26 +134,6 @@ export function FilterPanel({ filters, options, onChange }: FilterPanelProps) {
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend className="mb-1.5 text-sm font-medium text-ink-800">Price (£)</legend>
-        <div className="grid grid-cols-2 gap-3">
-          <DebouncedInput
-            aria-label="Minimum price"
-            placeholder={options?.priceRange ? String(options.priceRange.min) : 'Min'}
-            inputMode="numeric"
-            value={filters.minPrice}
-            onCommit={minPrice => onChange({ minPrice: minPrice.replace(/\D/g, '') })}
-          />
-          <DebouncedInput
-            aria-label="Maximum price"
-            placeholder={options?.priceRange ? String(options.priceRange.max) : 'Max'}
-            inputMode="numeric"
-            value={filters.maxPrice}
-            onCommit={maxPrice => onChange({ maxPrice: maxPrice.replace(/\D/g, '') })}
-          />
-        </div>
-      </fieldset>
-
       <Checkbox
         label="Only vehicles with available slots"
         checked={filters.availableOnly}

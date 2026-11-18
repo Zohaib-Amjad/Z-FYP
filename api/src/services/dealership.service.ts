@@ -8,6 +8,13 @@ import type {
   UpdateDealershipInput,
 } from '../validators/dealership.validators';
 import { AppError } from '../utils/AppError';
+import {
+  UploadedImage,
+  checkedImageType,
+  removeDealershipImageFile,
+  removeFiles,
+  writeDealershipImage,
+} from '../utils/imageFiles';
 import { ACTIVE_BOOKING_STATUSES } from '../utils/bookingStatus';
 import { lockDealership } from '../utils/locks';
 import { Page, buildPage, toSkipTake } from '../utils/pagination';
@@ -22,6 +29,7 @@ const PUBLIC_SELECT = {
   email: true,
   openingHours: true,
   description: true,
+  imageUrl: true,
 } satisfies Prisma.DealershipSelect;
 
 const ADMIN_SELECT = {
@@ -206,4 +214,38 @@ export const activateDealership = async (id: string) => {
     select: ADMIN_SELECT,
   });
   return toAdminDealership(row);
+};
+
+/** Points the dealership at a new image URL (or none) under a row lock and returns the previous URL. */
+const swapImageUrl = (id: string, imageUrl: string | null) =>
+  prisma.$transaction(async tx => {
+    await lockDealership(tx, id);
+    const current = await tx.dealership.findUnique({ where: { id }, select: { imageUrl: true } });
+    if (!current) throw notFound();
+    await tx.dealership.update({ where: { id }, data: { imageUrl } });
+    return current.imageUrl;
+  });
+
+/** Stores one showroom photograph, replacing (and deleting) any previous upload. */
+export const setDealershipImage = async (id: string, file: UploadedImage | undefined) => {
+  if (!file) throw new AppError(422, 'UPLOAD_INVALID', 'Select an image to upload');
+  const type = checkedImageType(file);
+  if (!(await prisma.dealership.count({ where: { id } }))) throw notFound();
+  const stored = await writeDealershipImage(id, file.buffer, type.extension);
+  let previous: string | null;
+  try {
+    previous = await swapImageUrl(id, stored.url);
+  } catch (error) {
+    await removeFiles([stored.filePath]);
+    throw error;
+  }
+  if (previous) await removeDealershipImageFile(id, previous);
+  return getAdminDealership(id);
+};
+
+/** Removes the showroom photograph, deleting the file when it was uploaded through the portal. */
+export const removeDealershipImage = async (id: string) => {
+  const previous = await swapImageUrl(id, null);
+  if (previous) await removeDealershipImageFile(id, previous);
+  return getAdminDealership(id);
 };

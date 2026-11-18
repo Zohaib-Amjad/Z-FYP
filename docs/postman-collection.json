@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Prestige Test Drive API (local)",
+    "name": "LuxDrive API (local)",
     "description": "REST API for the Luxury Car Test-Drive Booking and Management System.\n\n**Conventions**\n- Every response uses an envelope: `{ \"success\": true, \"data\": ..., \"message\": \"optional\" }` on success and\n  `{ \"success\": false, \"error\": { \"code\": \"MACHINE_CODE\", \"message\": \"...\", \"details\": [{ \"field\": \"...\", \"message\": \"...\" }] } }` on failure.\n- Authentication is a JWT in an httpOnly, SameSite=Lax cookie named `td_session`, set by `POST /api/auth/login`\n  or `POST /api/auth/register`. Two roles exist: `CUSTOMER` and `STAFF`.\n- Request bodies, query strings and path parameters are validated; unknown fields are rejected with `422`.\n- All identifiers are UUIDs and all timestamps are ISO 8601 in UTC.\n- Lists are paginated with `page` (from 1) and `pageSize` (1 to 50, default 10).\n- Multi-value filters accept a comma-separated list (`status=PENDING,APPROVED`) or repeated parameters.\n- Error codes and their HTTP statuses are listed in `docs/api-error-codes.md`.\n\n**Try it:** sign in with `POST /api/auth/login` (demo accounts are printed by `npm run db:seed`), then call any\nother endpoint from this page; the browser sends the session cookie automatically.\n\nStart with the \"Sign in\" folder: choose the customer or the staff login, then use the other folders.\nRun `npm run db:seed` first; it creates the demo accounts used by this collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -213,7 +213,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Charlotte\",\n  \"lastName\": \"Ainsworth\",\n  \"email\": \"charlotte.ainsworth@example.com\",\n  \"password\": \"Velvet2026\",\n  \"confirmPassword\": \"Velvet2026\",\n  \"phone\": \"+44 7700 900777\",\n  \"drivingLicenseNumber\": \"AINSW901015C99XY\"\n}",
+              "raw": "{\n  \"firstName\": \"Charlotte\",\n  \"lastName\": \"Ainsworth\",\n  \"email\": \"charlotte.ainsworth@example.com\",\n  \"password\": \"Velvet2026\",\n  \"confirmPassword\": \"Velvet2026\",\n  \"phone\": \"+92 300 5550777\",\n  \"drivingLicenseNumber\": \"AINSW901015C99XY\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -348,7 +348,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Amelia\",\n  \"lastName\": \"Hart-Lowe\",\n  \"phone\": \"+44 7700 900999\"\n}",
+              "raw": "{\n  \"firstName\": \"Amelia\",\n  \"lastName\": \"Hart-Lowe\",\n  \"phone\": \"+92 300 5550999\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -657,7 +657,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}/slots?dealershipId=&from=&to=&timeZone=Europe/London",
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}/slots?dealershipId=&from=&to=&timeZone=Asia/Karachi",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -687,7 +687,7 @@
                 },
                 {
                   "key": "timeZone",
-                  "value": "Europe/London",
+                  "value": "Asia/Karachi",
                   "disabled": true,
                   "description": "IANA time zone used to group slots by date."
                 }
@@ -1344,7 +1344,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/admin/dashboard/summary?timeZone=Europe/London",
+              "raw": "{{baseUrl}}/api/admin/dashboard/summary?timeZone=Asia/Karachi",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1357,7 +1357,7 @@
               "query": [
                 {
                   "key": "timeZone",
-                  "value": "Europe/London",
+                  "value": "Asia/Karachi",
                   "disabled": true,
                   "description": "IANA time zone used for \"today\", \"this month\" and the trend's days."
                 }
@@ -1373,7 +1373,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/admin/dashboard/bookings-trend?days=14&timeZone=Europe/London",
+              "raw": "{{baseUrl}}/api/admin/dashboard/bookings-trend?days=14&timeZone=Asia/Karachi",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1391,7 +1391,7 @@
                 },
                 {
                   "key": "timeZone",
-                  "value": "Europe/London",
+                  "value": "Asia/Karachi",
                   "disabled": true,
                   "description": "IANA time zone used for \"today\", \"this month\" and the trend's days."
                 }
@@ -1877,7 +1877,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Prestige Edinburgh\",\n  \"address\": \"9 Charlotte Square\",\n  \"city\": \"Edinburgh\",\n  \"phone\": \"+44 131 496 3000\",\n  \"email\": \"edinburgh@prestige.test\",\n  \"openingHours\": \"Mon-Fri 09:00-17:30, Sat 09:00-13:00\",\n  \"description\": \"A refined Georgian-townhouse showroom.\"\n}",
+              "raw": "{\n  \"name\": \"LuxDrive DHA\",\n  \"address\": \"27 Khayaban-e-Shahbaz, DHA Phase 6\",\n  \"city\": \"Karachi\",\n  \"phone\": \"+92 21 3584 3000\",\n  \"email\": \"dha@luxdrive.test\",\n  \"openingHours\": \"Mon-Fri 09:00-17:30, Sat 09:00-13:00\",\n  \"description\": \"A refined showroom moments from the Clifton seafront.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1933,7 +1933,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+44 20 7946 1999\",\n  \"openingHours\": \"Mon-Sat 10:00-19:00\"\n}",
+              "raw": "{\n  \"phone\": \"+92 42 3575 1999\",\n  \"openingHours\": \"Mon-Sat 10:00-19:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1997,6 +1997,69 @@
                 "activate"
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload or replace the showroom photograph",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPEG, PNG or WebP; up to 8 files of 5 MB"
+                },
+                {
+                  "key": "altText",
+                  "type": "text",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}",
+                "image"
+              ]
+            },
+            "description": "Sends one JPEG, PNG or WebP image (checked by content, not just the extension) in the `image` field. The file is stored under a random name; an earlier uploaded photograph is deleted."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove the showroom photograph",
+          "event": [],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dealerships/{{dealershipId}}/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dealerships",
+                "{{dealershipId}}",
+                "image"
+              ]
+            },
+            "description": "Clears `imageUrl`. A photograph uploaded through the portal is also deleted from disk."
           },
           "response": []
         }
@@ -2135,7 +2198,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"dealershipId\": \"3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34\",\n  \"vehicleId\": \"7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46\",\n  \"dateFrom\": \"2030-03-11\",\n  \"dateTo\": \"2030-03-17\",\n  \"daysOfWeek\": [\n    \"MON\",\n    \"WED\",\n    \"FRI\"\n  ],\n  \"dailyStartTime\": \"09:00\",\n  \"dailyEndTime\": \"12:00\",\n  \"durationMinutes\": 60,\n  \"breakMinutes\": 30,\n  \"timeZone\": \"Europe/London\"\n}",
+              "raw": "{\n  \"dealershipId\": \"3c8e1a52-7d4b-4f6a-b2c9-5e0a8d1f7b34\",\n  \"vehicleId\": \"7e1f4a93-2b6c-4d8e-a5f0-9c3b1d7e2a46\",\n  \"dateFrom\": \"2030-03-11\",\n  \"dateTo\": \"2030-03-17\",\n  \"daysOfWeek\": [\n    \"MON\",\n    \"WED\",\n    \"FRI\"\n  ],\n  \"dailyStartTime\": \"09:00\",\n  \"dailyEndTime\": \"12:00\",\n  \"durationMinutes\": 60,\n  \"breakMinutes\": 30,\n  \"timeZone\": \"Asia/Karachi\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2447,7 +2510,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Marcus\",\n  \"lastName\": \"Ashworth\",\n  \"email\": \"marcus.ashworth@prestige.test\",\n  \"password\": \"Temporary2026\",\n  \"phone\": \"+44 20 7946 0102\"\n}",
+              "raw": "{\n  \"firstName\": \"Marcus\",\n  \"lastName\": \"Ashworth\",\n  \"email\": \"marcus.ashworth@prestige.test\",\n  \"password\": \"Temporary2026\",\n  \"phone\": \"+92 42 3575 0102\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

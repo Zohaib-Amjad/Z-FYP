@@ -141,7 +141,7 @@ describe('approve', () => {
       status: 'APPROVED',
       staffNote: 'Please bring your licence.',
       vehicle: { manufacturer: 'Porsche' },
-      dealership: { name: 'Prestige Mayfair' },
+      dealership: { name: 'LuxDrive Mayfair' },
     });
     expect(typeof res.body.data.approvedAt).toBe('string');
     const row = await stored(booking.id);
@@ -478,21 +478,21 @@ describe('reschedule', () => {
 
   it('allows a different dealership when the vehicle is offered there', async () => {
     const booking = await makeBooking('APPROVED', { days: 3 });
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, data.vehicle.id);
     const target = await freeSlot(5, 10, { ...data, dealership: manchester });
     const res = await act(booking.id, 'reschedule', { newSlotId: target.id });
 
     expect(res.status).toBe(200);
-    expect(res.body.data.dealership).toMatchObject({ name: 'Prestige Deansgate' });
+    expect(res.body.data.dealership).toMatchObject({ name: 'LuxDrive Deansgate' });
     const [notification] = (await stored(booking.id)).notifications;
-    expect(notification.message).toContain('at Prestige Mayfair');
-    expect(notification.message).toContain('at Prestige Deansgate');
+    expect(notification.message).toContain('at LuxDrive Mayfair');
+    expect(notification.message).toContain('at LuxDrive Deansgate');
   });
 
   it('refuses a dealership that no longer offers the vehicle or is deactivated', async () => {
     const booking = await makeBooking('APPROVED', { days: 3 });
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, data.vehicle.id);
     const target = await freeSlot(5, 10, { ...data, dealership: manchester });
     await prisma.dealershipVehicle.update({

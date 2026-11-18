@@ -81,7 +81,7 @@ export const vehicleSchema = z.object({
   acceleration0to100: decimalNumber('Acceleration', 0, 30, true),
   seats: wholeNumber('Seats', 1, 9, true),
   color: text('Colour', 2, 40),
-  priceFrom: decimalNumber('Price', 0, 99_999_999),
+  priceFrom: decimalNumber('Price', 0, 9_999_999_999),
   description: text('Description', 10, 5000),
   features: z
     .array(text('A feature', 1, MAX_FEATURE_LENGTH))

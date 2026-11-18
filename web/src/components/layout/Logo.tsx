@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
+import { LogoMark } from './LogoMark';
 
 interface LogoProps {
   tone?: 'dark' | 'light';
@@ -13,24 +14,15 @@ export function Logo({ tone = 'dark', href = '/', className }: LogoProps) {
       href={href}
       className={cn('group inline-flex min-h-[44px] items-center gap-2.5', className)}
     >
+      <LogoMark className={cn('h-9 w-9', tone === 'light' ? 'text-gold-400' : 'text-gold-600')} />
       <span
-        aria-hidden="true"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-gold-400 font-display text-lg font-bold text-gold-400"
+        className={cn(
+          'font-display text-2xl font-semibold leading-none tracking-wide',
+          tone === 'light' ? 'text-ivory-100' : 'text-ink-950',
+        )}
       >
-        P
-      </span>
-      <span className="leading-none">
-        <span
-          className={cn(
-            'block font-display text-xl font-semibold tracking-wide',
-            tone === 'light' ? 'text-ivory-100' : 'text-ink-950',
-          )}
-        >
-          Prestige
-        </span>
-        <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.3em] text-gold-500">
-          Test Drive
-        </span>
+        Lux
+        <span className={tone === 'light' ? 'text-gold-400' : 'text-gold-700'}>Drive</span>
       </span>
     </Link>
   );

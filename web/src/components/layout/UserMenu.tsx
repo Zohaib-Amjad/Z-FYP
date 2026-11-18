@@ -52,7 +52,7 @@ export function UserMenu({ user }: { user: User }) {
       >
         <span
           aria-hidden="true"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-400 text-xs font-bold text-ink-950"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-400 text-xs font-semibold text-ink-950"
         >
           {initials(user)}
         </span>

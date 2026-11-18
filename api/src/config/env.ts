@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { z } from 'zod';
+import { isValidTimeZone } from '../utils/timeZone';
 import { jwtSecretProblem } from './jwtSecret';
 
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
@@ -18,6 +19,10 @@ const envSchema = z.object({
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   CANCELLATION_WINDOW_HOURS: z.coerce.number().positive().default(24),
   MAX_ACTIVE_BOOKINGS: z.coerce.number().int().positive().default(3),
+  BUSINESS_TIME_ZONE: z
+    .string()
+    .default('Asia/Karachi')
+    .refine(isValidTimeZone, 'BUSINESS_TIME_ZONE must be an IANA time zone such as Asia/Karachi'),
   UPLOAD_DIR: z.string().default('uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(5),
   SMTP_HOST: optionalString,

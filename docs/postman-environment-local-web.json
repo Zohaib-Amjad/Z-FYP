@@ -1,6 +1,6 @@
 {
-  "id": "prestige-local-web-proxy-on-port-3000-",
-  "name": "Prestige Local (web proxy on port 3000)",
+  "id": "luxdrive-local-web-proxy-on-port-3000-",
+  "name": "LuxDrive Local (web proxy on port 3000)",
   "values": [
     {
       "key": "baseUrl",

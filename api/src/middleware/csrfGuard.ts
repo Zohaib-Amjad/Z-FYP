@@ -25,15 +25,21 @@ const originOf = (value: string | undefined): string | undefined => {
 const hasBody = (headers: Record<string, string | string[] | undefined>): boolean =>
   Number(headers['content-length'] ?? 0) > 0 || headers['transfer-encoding'] !== undefined;
 
+/** The only multipart endpoints: vehicle images and the showroom photograph. */
+const IMAGE_UPLOAD_PATHS = [
+  /^\/admin\/vehicles\/[^/]+\/images\/?$/,
+  /^\/admin\/dealerships\/[^/]+\/image\/?$/,
+];
+
 const isImageUpload = (method: string, path: string): boolean =>
-  method === 'POST' && /^\/admin\/vehicles\/[^/]+\/images\/?$/.test(path);
+  method === 'POST' && IMAGE_UPLOAD_PATHS.some(pattern => pattern.test(path));
 
 /**
  * CSRF defence in depth, on top of the SameSite=Lax session cookie:
  *  1. A state-changing request that names an Origin (or, failing that, a Referer) must name a
  *     trusted one. Browsers always send Origin on cross-site POSTs, so forged requests are refused;
  *     tools such as curl or Postman, which send neither, are not affected.
- *  2. A request with a body must be JSON (multipart only for the image upload), which a plain HTML
+ *  2. A request with a body must be JSON (multipart only for the image uploads), which a plain HTML
  *     form cannot send.
  */
 export const csrfGuard: RequestHandler = (req, _res, next) => {

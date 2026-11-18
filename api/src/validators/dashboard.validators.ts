@@ -7,7 +7,7 @@ const MAX_TOP_VEHICLES = 20;
 
 const timeZoneField = z
   .string()
-  .refine(isValidTimeZone, 'Use an IANA time zone such as Europe/London')
+  .refine(isValidTimeZone, 'Use an IANA time zone such as Asia/Karachi')
   .default('UTC');
 
 const daysField = (max: number, fallback: number) =>

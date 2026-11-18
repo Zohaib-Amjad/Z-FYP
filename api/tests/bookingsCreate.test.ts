@@ -90,7 +90,7 @@ describe('POST /api/bookings: success', () => {
         year: 2025,
         primaryImage: { url: '/uploads/x/1.png', altText: 'Front' },
       },
-      dealership: { id: data.dealership.id, name: 'Prestige Mayfair', city: 'London' },
+      dealership: { id: data.dealership.id, name: 'LuxDrive Mayfair', city: 'London' },
     });
     expect(res.body.data.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(res.body.data.dealership).toHaveProperty('address');
@@ -123,7 +123,7 @@ describe('POST /api/bookings: success', () => {
       isRead: false,
     });
     expect(notifications[0].message).toContain('Porsche 911 Carrera T');
-    expect(notifications[0].message).toContain('Prestige Mayfair');
+    expect(notifications[0].message).toContain('LuxDrive Mayfair');
   });
 
   it.each([
@@ -176,7 +176,7 @@ describe('POST /api/bookings: success', () => {
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1));
     expect(send.mock.calls[0][0]).toMatchObject({ to: 'customer@example.test' });
     expect(send.mock.calls[0][0].subject).toContain('Porsche 911 Carrera T');
-    expect(send.mock.calls[0][0].text).toContain('Prestige Mayfair');
+    expect(send.mock.calls[0][0].text).toContain('LuxDrive Mayfair');
     await vi.waitFor(() => expect(bookingVisibleWhenSent).toBe(true));
   });
 

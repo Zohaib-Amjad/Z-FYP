@@ -16,7 +16,7 @@ const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use the 24-hou
 
 const timeZoneField = z
   .string()
-  .refine(isValidTimeZone, 'Use an IANA time zone such as Europe/London');
+  .refine(isValidTimeZone, 'Use an IANA time zone such as Asia/Karachi');
 
 export const vehicleSlotsParamsSchema = z.object({ vehicleId: uuidSchema }).strict();
 

@@ -65,8 +65,8 @@ describe('GET /api/admin/dashboard/summary', () => {
 
   beforeEach(async () => {
     const mayfair = data.dealership;
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
-    await createDealership('Prestige Edinburgh', 'Edinburgh', { isActive: false });
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
+    await createDealership('LuxDrive Edinburgh', 'Edinburgh', { isActive: false });
     const audi = await createVehicle({ manufacturer: 'Audi', model: 'RS e-tron GT' });
     const dormant = await createVehicle({
       manufacturer: 'Bentley',
@@ -189,7 +189,7 @@ describe('GET /api/admin/dashboard/summary', () => {
       status: 'APPROVED',
       customer: { name: expect.any(String), email: expect.any(String) },
       vehicle: { name: 'Porsche 911 Carrera T' },
-      dealership: { name: 'Prestige Mayfair' },
+      dealership: { name: 'LuxDrive Mayfair' },
     });
   });
 

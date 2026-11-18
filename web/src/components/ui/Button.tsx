@@ -12,7 +12,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
   secondary: 'bg-ink-900 text-ivory-100 hover:bg-ink-700 active:bg-ink-800',
   outline: 'border border-ink-300 bg-transparent text-ink-900 hover:border-ink-900 hover:bg-ink-50',
   ghost: 'bg-transparent text-ink-800 hover:bg-ink-100',
-  danger: 'bg-status-rejected text-white hover:bg-[#8a2330] active:bg-[#741c28]',
+  danger: 'bg-status-rejected text-white hover:bg-[#8a3232] active:bg-[#732929]',
   light: 'border border-ivory-300/40 bg-transparent text-ivory-100 hover:bg-ivory-100/10',
 };
 

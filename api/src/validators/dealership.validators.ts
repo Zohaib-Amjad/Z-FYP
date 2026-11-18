@@ -75,6 +75,9 @@ export const adminDealershipQuerySchema = paginationQuerySchema.extend({
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 
+/** A showroom photo upload carries only the file; any other form field is rejected. */
+export const uploadDealershipImageBodySchema = z.object({}).strict();
+
 export type CreateDealershipInput = z.infer<typeof createDealershipSchema>;
 export type UpdateDealershipInput = z.infer<typeof updateDealershipSchema>;
 export type PublicDealershipQuery = z.infer<typeof publicDealershipQuerySchema>;

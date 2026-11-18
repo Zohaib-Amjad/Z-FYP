@@ -177,7 +177,7 @@ export function ImageManager({ vehicleId, vehicleName, images }: ImageManagerPro
         {problems.length > 0 ? (
           <ul
             role="alert"
-            className="space-y-1 rounded-control border border-status-rejected/30 bg-[#fdf6f6] px-4 py-3 text-sm text-status-rejected"
+            className="space-y-1 rounded-control border border-status-rejected/30 bg-status-rejected-soft px-4 py-3 text-sm text-status-rejected"
           >
             {problems.map(problem => (
               <li key={problem.name}>

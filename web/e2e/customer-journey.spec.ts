@@ -15,7 +15,7 @@ test('E2E-01 a new customer registers, browses, filters, books a test drive and 
   await labelled(page, 'First name').fill('Eliza');
   await labelled(page, 'Last name').fill(`Journey${stamp}`);
   await labelled(page, 'Email address').fill(email);
-  await labelled(page, 'Phone number').fill('+44 7700 900321');
+  await labelled(page, 'Phone number').fill('+92 300 5550321');
   await labelled(page, 'Password').fill(SEED_PASSWORD);
   await labelled(page, 'Confirm password').fill(SEED_PASSWORD);
   await page.getByRole('button', { name: 'Create account' }).click();
