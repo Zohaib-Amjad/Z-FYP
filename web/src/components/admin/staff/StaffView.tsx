@@ -76,7 +76,7 @@ function CreateStaffForm() {
           {created ? (
             <div
               role="status"
-              className="rounded-control border border-status-approved/30 bg-[#e3f4ea] px-4 py-3 text-sm text-ink-800"
+              className="rounded-control border border-status-approved/30 bg-status-approved-soft px-4 py-3 text-sm text-ink-800"
             >
               <p className="font-semibold">{created.name} can now sign in.</p>
               <p className="mt-1">

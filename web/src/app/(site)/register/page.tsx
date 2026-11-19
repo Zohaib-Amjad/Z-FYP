@@ -6,7 +6,7 @@ export const metadata = { title: 'Create your account' };
 export default function RegisterPage({ searchParams }: { searchParams: { next?: string } }) {
   return (
     <AuthCard
-      eyebrow="Join Prestige"
+      eyebrow="Join LuxDrive"
       title="Create your account"
       description="Reserve private test drives and follow every appointment in one place."
     >

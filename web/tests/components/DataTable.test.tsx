@@ -10,8 +10,8 @@ interface Row {
 }
 
 const rows: Row[] = [
-  { id: '1', name: 'Prestige Mayfair', city: 'London' },
-  { id: '2', name: 'Prestige Deansgate', city: 'Manchester' },
+  { id: '1', name: 'LuxDrive Mayfair', city: 'London' },
+  { id: '2', name: 'LuxDrive Deansgate', city: 'Manchester' },
 ];
 
 const columns: Column<Row>[] = [
@@ -43,7 +43,7 @@ describe('DataTable responsive behaviour', () => {
     expect(cards.className).toMatch(/md:hidden/);
     const items = within(cards).getAllByRole('listitem');
     expect(items).toHaveLength(2);
-    expect(items[0].textContent).toContain('Prestige Mayfair');
+    expect(items[0].textContent).toContain('LuxDrive Mayfair');
     expect(items[0].textContent).toContain('London');
   });
 
@@ -72,7 +72,7 @@ describe('DataTable responsive behaviour', () => {
   it('shows skeleton rows while loading instead of data', () => {
     renderTable({ loading: true });
 
-    expect(screen.queryByText('Prestige Mayfair')).toBeNull();
+    expect(screen.queryByText('LuxDrive Mayfair')).toBeNull();
     expect(within(screen.getByRole('table')).getAllByRole('row').length).toBeGreaterThan(2);
   });
 

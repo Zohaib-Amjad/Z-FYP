@@ -7,14 +7,13 @@ import {
   type VehicleFilters,
   type VehicleType,
 } from '@/types';
-import { enumLabel, formatPrice } from '@/lib/format';
+import { enumLabel } from '@/lib/format';
 
-export const CATALOG_PAGE_SIZE = 12;
+/** The API's maximum page size, so the whole collection shows on one page. */
+export const CATALOG_PAGE_SIZE = 50;
 
 export const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
-  { value: 'priceAsc', label: 'Price: low to high' },
-  { value: 'priceDesc', label: 'Price: high to low' },
   { value: 'manufacturerAsc', label: 'Manufacturer A to Z' },
   { value: 'powerDesc', label: 'Most powerful' },
 ] as const;
@@ -31,8 +30,6 @@ export interface CatalogFilters {
   city: string;
   minYear: string;
   maxYear: string;
-  minPrice: string;
-  maxPrice: string;
   availableOnly: boolean;
   sort: CatalogSort;
   page: number;
@@ -48,8 +45,6 @@ export const DEFAULT_FILTERS: CatalogFilters = {
   city: '',
   minYear: '',
   maxYear: '',
-  minPrice: '',
-  maxPrice: '',
   availableOnly: false,
   sort: 'newest',
   page: 1,
@@ -77,8 +72,6 @@ export function parseFilters(params: RawParams): CatalogFilters {
     city: (params.get('city') ?? '').slice(0, 80),
     minYear: wholeNumber(params.get('minYear')),
     maxYear: wholeNumber(params.get('maxYear')),
-    minPrice: wholeNumber(params.get('minPrice')),
-    maxPrice: wholeNumber(params.get('maxPrice')),
     availableOnly: params.get('availableOnly') === 'true',
     sort: sort ?? DEFAULT_FILTERS.sort,
     page: Number.isInteger(page) && page > 1 ? page : 1,
@@ -109,8 +102,6 @@ export function toApiQuery(filters: CatalogFilters): Record<string, QueryValue |
     city: filters.city || undefined,
     minYear: filters.minYear || undefined,
     maxYear: filters.maxYear || undefined,
-    minPrice: filters.minPrice || undefined,
-    maxPrice: filters.maxPrice || undefined,
     availableOnly: filters.availableOnly ? true : undefined,
     sort: filters.sort,
     page: filters.page,
@@ -131,7 +122,7 @@ export function applyChange(
 }
 
 export interface FilterChip {
-  key: keyof CatalogFilters | 'year' | 'price';
+  key: keyof CatalogFilters | 'year';
   label: string;
 }
 
@@ -153,18 +144,12 @@ export function activeChips(filters: CatalogFilters): FilterChip[] {
       label: `Year ${filters.minYear || 'any'} to ${filters.maxYear || 'any'}`,
     });
   }
-  if (filters.minPrice || filters.maxPrice) {
-    const low = filters.minPrice ? formatPrice(Number(filters.minPrice)) : 'any';
-    const high = filters.maxPrice ? formatPrice(Number(filters.maxPrice)) : 'any';
-    chips.push({ key: 'price', label: `Price ${low} to ${high}` });
-  }
   if (filters.availableOnly) chips.push({ key: 'availableOnly', label: 'Has available slots' });
   return chips;
 }
 
 export function removeChip(filters: CatalogFilters, key: FilterChip['key']): CatalogFilters {
   if (key === 'year') return applyChange(filters, { minYear: '', maxYear: '' });
-  if (key === 'price') return applyChange(filters, { minPrice: '', maxPrice: '' });
   return applyChange(filters, { [key]: DEFAULT_FILTERS[key] } as Partial<CatalogFilters>);
 }
 

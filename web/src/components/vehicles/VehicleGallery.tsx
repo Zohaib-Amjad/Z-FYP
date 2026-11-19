@@ -63,7 +63,7 @@ export function VehicleGallery({ images, title }: VehicleGalleryProps) {
         onPointerCancel={() => {
           swipeStart.current = null;
         }}
-        className="relative aspect-[16/10] touch-pan-y select-none overflow-hidden rounded-card bg-ink-900"
+        className="relative aspect-[16/10] touch-pan-y select-none overflow-hidden rounded-card bg-ink-950"
       >
         <Image
           key={current.id}
@@ -74,7 +74,7 @@ export function VehicleGallery({ images, title }: VehicleGalleryProps) {
           draggable={false}
           sizes="(min-width: 1024px) 60vw, 100vw"
           unoptimized={current.url.endsWith('.svg')}
-          className="object-cover"
+          className="object-contain"
         />
         {count > 1 ? (
           <>

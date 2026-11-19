@@ -1,6 +1,6 @@
 # Software Requirements Specification (draft)
 
-Luxury Car Test-Drive Booking and Management System ("Prestige Test Drive")
+Luxury Car Test-Drive Booking and Management System ("LuxDrive")
 
 This document is self-contained so that it can be copied into a university template. Requirement identifiers (FR-n.m, NFR-x.n) are stable and are used by `docs/requirements-traceability.md`. Business rules A1 to A11 are the assumptions recorded in `docs/assumptions.md` and are subject to supervisor confirmation.
 

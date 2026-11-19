@@ -86,6 +86,7 @@ model Dealership {
   email        String              @map("email")
   openingHours String              @map("opening_hours")
   description  String?             @map("description")
+  imageUrl     String?             @map("image_url")
   isActive     Boolean             @default(true) @map("is_active")
   createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz

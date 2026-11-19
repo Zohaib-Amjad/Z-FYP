@@ -67,23 +67,23 @@ describe('ics', () => {
 
   it('builds a complete calendar event with CRLF line endings', () => {
     const ics = buildIcs({
-      uid: 'abc@prestige-testdrive',
+      uid: 'abc@luxdrive',
       start: new Date('2030-03-12T10:00:00.000Z'),
       end: new Date('2030-03-12T11:00:00.000Z'),
       summary: 'Test drive: Porsche 911',
-      location: 'Prestige Mayfair, 14 Berkeley Square, London',
+      location: 'LuxDrive Mayfair, 14 Berkeley Square, London',
       description: 'Reference TD-ABC12345',
       now: new Date('2030-01-01T00:00:00.000Z'),
     });
 
     expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
     expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
-    expect(ics).toContain('UID:abc@prestige-testdrive\r\n');
+    expect(ics).toContain('UID:abc@luxdrive\r\n');
     expect(ics).toContain('DTSTART:20300312T100000Z\r\n');
     expect(ics).toContain('DTEND:20300312T110000Z\r\n');
     expect(ics).toContain('DTSTAMP:20300101T000000Z\r\n');
     expect(ics).toContain('SUMMARY:Test drive: Porsche 911\r\n');
-    expect(ics).toContain('LOCATION:Prestige Mayfair\\, 14 Berkeley Square\\, London\r\n');
+    expect(ics).toContain('LOCATION:LuxDrive Mayfair\\, 14 Berkeley Square\\, London\r\n');
     expect(ics.split('\r\n').filter(line => line.startsWith('BEGIN:')).length).toBe(2);
   });
 });

@@ -24,12 +24,12 @@ const ACTIVE = ['PENDING', 'APPROVED', 'RESCHEDULED'];
 function addToCalendar(booking: MyBookingDetail): void {
   const reference = bookingReference(booking.id);
   const ics = buildIcs({
-    uid: `${booking.id}@prestige-testdrive`,
+    uid: `${booking.id}@luxdrive`,
     start: new Date(booking.startAt),
     end: new Date(booking.endAt),
     summary: `Test drive: ${booking.vehicle.name}`,
     location: `${booking.dealership.name}, ${booking.dealership.address}, ${booking.dealership.city}`,
-    description: `Prestige Test Drive booking ${reference}. Bring your driving licence.`,
+    description: `LuxDrive booking ${reference}. Bring your driving licence.`,
   });
   downloadIcs(`test-drive-${reference}.ics`, ics);
 }

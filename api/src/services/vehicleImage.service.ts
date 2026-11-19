@@ -4,7 +4,8 @@ import type { UpdateImageInput } from '../validators/vehicle.validators';
 import { AppError } from '../utils/AppError';
 import {
   ImageType,
-  detectImageType,
+  UploadedImage,
+  checkedImageType,
   removeFiles,
   removeVehicleImageFile,
   writeVehicleImage,
@@ -15,27 +16,11 @@ import { vehicleNotFound } from './vehicle.service';
 
 const MAX_IMAGES_PER_VEHICLE = 12;
 
-export interface UploadedImage {
-  buffer: Buffer;
-  mimetype: string;
-  originalname: string;
-}
+export type { UploadedImage };
 
 type Tx = Prisma.TransactionClient;
 
 const invalidUpload = (message: string): AppError => new AppError(422, 'UPLOAD_INVALID', message);
-
-const displayName = (name: string): string => name.slice(0, 60);
-
-const checkedType = (file: UploadedImage): ImageType => {
-  const detected = detectImageType(file.buffer);
-  if (!detected || detected.mime !== file.mimetype) {
-    throw invalidUpload(
-      `"${displayName(file.originalname)}" is not a valid JPEG, PNG or WebP image`,
-    );
-  }
-  return detected;
-};
 
 const imagesOf = (tx: Tx | typeof prisma, vehicleId: string) =>
   tx.vehicleImage.findMany({ where: { vehicleId }, select: IMAGE_SELECT, orderBy: IMAGE_ORDER });
@@ -101,7 +86,7 @@ export const addVehicleImages = async (
     select: { manufacturer: true, model: true },
   });
   if (!vehicle) throw vehicleNotFound();
-  const checked = files.map(file => ({ buffer: file.buffer, type: checkedType(file) }));
+  const checked = files.map(file => ({ buffer: file.buffer, type: checkedImageType(file) }));
   const written: string[] = [];
   try {
     await prisma.$transaction(async tx => {

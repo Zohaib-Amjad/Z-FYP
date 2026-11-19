@@ -23,11 +23,11 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center rounded-card border border-status-rejected/30 bg-[#fdf6f6] px-6 py-12 text-center',
+        'flex flex-col items-center rounded-card border border-status-rejected/30 bg-status-rejected-soft px-6 py-12 text-center',
         className,
       )}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fbe8ea] text-status-rejected">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-status-rejected-soft text-status-rejected">
         <AlertTriangle className="h-6 w-6" aria-hidden="true" />
       </span>
       <Heading className="mt-4 font-display text-xl font-semibold">{title}</Heading>

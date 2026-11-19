@@ -21,7 +21,7 @@ beforeEach(async () => {
   await resetDatabase();
   data = await seedMinimalData();
   await prisma.timeSlot.delete({ where: { id: data.slot.id } });
-  manchester = await createDealership('Prestige Deansgate', 'Manchester');
+  manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
   await linkVehicle(manchester.id, data.vehicle.id);
 });
 
@@ -56,7 +56,7 @@ describe('GET /api/vehicles/:vehicleId/slots', () => {
         id: third.id,
         startAt: utcInstant(4, 14).toISOString(),
         endAt: utcInstant(4, 15).toISOString(),
-        dealership: { id: manchester.id, name: 'Prestige Deansgate', city: 'Manchester' },
+        dealership: { id: manchester.id, name: 'LuxDrive Deansgate', city: 'Manchester' },
       },
     ]);
   });

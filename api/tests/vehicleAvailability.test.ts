@@ -51,8 +51,8 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('adds dealerships and sets their availability', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
-    const edinburgh = await createDealership('Prestige Edinburgh', 'Edinburgh');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
+    const edinburgh = await createDealership('LuxDrive Edinburgh', 'Edinburgh');
     const res = await put({
       dealerships: [
         { dealershipId: data.dealership.id, isAvailable: true },
@@ -66,21 +66,21 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
       [
         {
           id: manchester.id,
-          name: 'Prestige Deansgate',
+          name: 'LuxDrive Deansgate',
           city: 'Manchester',
           isActive: true,
           isAvailable: true,
         },
         {
           id: edinburgh.id,
-          name: 'Prestige Edinburgh',
+          name: 'LuxDrive Edinburgh',
           city: 'Edinburgh',
           isActive: true,
           isAvailable: false,
         },
         {
           id: data.dealership.id,
-          name: 'Prestige Mayfair',
+          name: 'LuxDrive Mayfair',
           city: 'London',
           isActive: true,
           isAvailable: true,
@@ -90,7 +90,7 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('removes a dealership that has no slots', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, data.vehicle.id);
     const res = await put({
       dealerships: [{ dealershipId: data.dealership.id, isAvailable: true }],
@@ -123,7 +123,7 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
     expect(res.body.error.details).toEqual([
       {
         field: `dealerships.${data.dealership.id}`,
-        message: 'Prestige Mayfair: 1 upcoming active booking, 1 active upcoming slot',
+        message: 'LuxDrive Mayfair: 1 upcoming active booking, 1 active upcoming slot',
       },
     ]);
     expect((await linksOf()).map(l => [l.dealershipId, l.isAvailable])).toEqual([
@@ -161,7 +161,7 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('does not count past slots or other dealerships and vehicles', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, data.vehicle.id);
     const elsewhere = await createSlot({ ...data, dealership: manchester }, 8, 10);
     await createBooking(data.customer.id, elsewhere.id, 'PENDING');
@@ -176,8 +176,8 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('applies nothing when any withdrawal is blocked', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
-    const edinburgh = await createDealership('Prestige Edinburgh', 'Edinburgh');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
+    const edinburgh = await createDealership('LuxDrive Edinburgh', 'Edinburgh');
     const res = await put({
       dealerships: [
         { dealershipId: edinburgh.id, isAvailable: true },
@@ -190,7 +190,7 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('rejects unknown and deactivated dealerships, naming the offending entry', async () => {
-    const inactive = await createDealership('Prestige Deansgate', 'Manchester', {
+    const inactive = await createDealership('LuxDrive Deansgate', 'Manchester', {
       isActive: false,
     });
     const res = await put({
@@ -244,7 +244,7 @@ describe('PUT /api/admin/vehicles/:id/dealerships', () => {
   });
 
   it('changes what customers see for the dealership filter', async () => {
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await put({
       dealerships: [
         { dealershipId: data.dealership.id, isAvailable: true },

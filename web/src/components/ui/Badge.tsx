@@ -3,12 +3,12 @@ import { cn } from '@/lib/cn';
 import type { BookingStatus } from '@/types';
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
-  PENDING: 'bg-[#fbf1d9] text-status-pending ring-[#e8cf94]',
-  APPROVED: 'bg-[#e3f4ea] text-status-approved ring-[#a8d6bb]',
-  REJECTED: 'bg-[#fbe8ea] text-status-rejected ring-[#e9b0b7]',
-  CANCELLED: 'bg-ink-100 text-status-cancelled ring-ink-300',
-  COMPLETED: 'bg-[#e4ecf8] text-status-completed ring-[#b2c6e6]',
-  RESCHEDULED: 'bg-[#efe6f8] text-status-rescheduled ring-[#cdb5e6]',
+  PENDING: 'bg-status-pending-soft text-status-pending ring-status-pending-line',
+  APPROVED: 'bg-status-approved-soft text-status-approved ring-status-approved-line',
+  REJECTED: 'bg-status-rejected-soft text-status-rejected ring-status-rejected-line',
+  CANCELLED: 'bg-status-cancelled-soft text-status-cancelled ring-status-cancelled-line',
+  COMPLETED: 'bg-status-completed-soft text-status-completed ring-status-completed-line',
+  RESCHEDULED: 'bg-status-rescheduled-soft text-status-rescheduled ring-status-rescheduled-line',
 };
 
 export const STATUS_LABELS: Record<BookingStatus, string> = {
@@ -43,7 +43,7 @@ export function ActiveBadge({ active, className }: { active: boolean; className?
       className={cn(
         BASE,
         active
-          ? 'bg-[#e3f4ea] text-status-approved ring-[#a8d6bb]'
+          ? 'bg-status-approved-soft text-status-approved ring-status-approved-line'
           : 'bg-ink-100 text-ink-600 ring-ink-300',
         className,
       )}

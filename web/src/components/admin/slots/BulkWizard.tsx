@@ -254,7 +254,7 @@ export function BulkWizard() {
           {preview.status === 'error' ? (
             <p
               role="alert"
-              className="rounded-control border border-status-rejected/30 bg-[#fdf6f6] px-4 py-3 text-sm text-status-rejected"
+              className="rounded-control border border-status-rejected/30 bg-status-rejected-soft px-4 py-3 text-sm text-status-rejected"
             >
               {preview.message}
             </p>
@@ -276,7 +276,7 @@ export function BulkWizard() {
                         {slots.map(slot => (
                           <li
                             key={slot.startAt}
-                            className="rounded-control bg-[#e3f4ea] px-2.5 py-1 text-xs font-medium text-status-approved"
+                            className="rounded-control bg-status-approved-soft px-2.5 py-1 text-xs font-medium text-status-approved"
                           >
                             {formatTime(slot.startAt)} – {formatTime(slot.endAt)}
                           </li>

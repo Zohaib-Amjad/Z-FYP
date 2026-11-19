@@ -139,7 +139,7 @@ export function DealershipLinks({ vehicleId, links }: DealershipLinksProps) {
         {problem ? (
           <div
             role="alert"
-            className="rounded-control border border-status-rejected/30 bg-[#fdf6f6] px-4 py-3 text-sm text-status-rejected"
+            className="rounded-control border border-status-rejected/30 bg-status-rejected-soft px-4 py-3 text-sm text-status-rejected"
           >
             <p>{problem}</p>
             <Link

@@ -125,7 +125,7 @@ const renderText = (greeting: string, message: string, details: Detail[]): strin
     ...details.map(([label, value]) => `${label}: ${value}`),
     '',
     'With our compliments,',
-    'Prestige Test Drive',
+    'LuxDrive',
   ].join('\n');
 
 const renderHtml = (
@@ -145,13 +145,13 @@ const renderHtml = (
 <body style="margin:0;padding:0;background:${IVORY};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${IVORY};padding:32px 12px;"><tr><td align="center">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:1px solid #e4dccb;">
-<tr><td style="background:${CHARCOAL};padding:28px 32px;text-align:center;"><span style="font-family:${SERIF};font-size:22px;letter-spacing:8px;color:${GOLD};">PRESTIGE</span></td></tr>
+<tr><td style="background:${CHARCOAL};padding:28px 32px;text-align:center;"><span style="font-family:${SERIF};font-size:22px;letter-spacing:8px;color:${GOLD};">LUXDRIVE</span></td></tr>
 <tr><td style="padding:36px 32px 8px 32px;"><h1 style="margin:0 0 20px 0;font-family:${SERIF};font-weight:normal;font-size:26px;color:${CHARCOAL};">${escapeHtml(title)}</h1>
 <p style="margin:0 0 12px 0;font-family:${SANS};font-size:15px;line-height:1.6;color:${CHARCOAL};">${escapeHtml(greeting)}</p>
 <p style="margin:0 0 24px 0;font-family:${SANS};font-size:15px;line-height:1.6;color:${CHARCOAL};">${escapeHtml(message)}</p></td></tr>
 <tr><td style="padding:0 32px 28px 32px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid ${GOLD};">${rows}</table></td></tr>
-<tr><td style="padding:0 32px 36px 32px;font-family:${SERIF};font-size:15px;color:${CHARCOAL};">With our compliments,<br><span style="color:${GOLD};">Prestige Test Drive</span></td></tr>
-<tr><td style="background:${CHARCOAL};padding:18px 32px;text-align:center;font-family:${SANS};font-size:11px;letter-spacing:1px;color:#9d978a;">PRESTIGE TEST DRIVE &middot; PRIVATE VIEWINGS BY APPOINTMENT</td></tr>
+<tr><td style="padding:0 32px 36px 32px;font-family:${SERIF};font-size:15px;color:${CHARCOAL};">With our compliments,<br><span style="color:${GOLD};">LuxDrive</span></td></tr>
+<tr><td style="background:${CHARCOAL};padding:18px 32px;text-align:center;font-family:${SANS};font-size:11px;letter-spacing:1px;color:#9d978a;">LUXDRIVE &middot; PRIVATE VIEWINGS BY APPOINTMENT</td></tr>
 </table></td></tr></table></body></html>`;
 };
 

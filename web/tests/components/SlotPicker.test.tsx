@@ -8,7 +8,7 @@ import { toDateKey } from '@/lib/calendar';
 const tomorrow = new Date(Date.now() + 86_400_000);
 tomorrow.setHours(10, 0, 0, 0);
 const DAY = toDateKey(tomorrow);
-const dealership = { id: 'd1', name: 'Prestige Mayfair', city: 'London' };
+const dealership = { id: 'd1', name: 'LuxDrive Mayfair', city: 'London' };
 
 const slot = (id: string, hour: number) => {
   const start = new Date(tomorrow);

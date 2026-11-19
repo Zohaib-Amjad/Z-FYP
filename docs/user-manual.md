@@ -1,6 +1,6 @@
 # User manual
 
-Prestige Test Drive has two parts: the **Customer Portal** for booking test drives and the **Administration Portal** for dealership staff. This manual explains both step by step. Screenshot placeholders are marked **[Screenshot Sn]**; the full list of what to capture is in section 4.
+LuxDrive has two parts: the **Customer Portal** for booking test drives and the **Administration Portal** for dealership staff. This manual explains both step by step. Screenshot placeholders are marked **[Screenshot Sn]**; the full list of what to capture is in section 4.
 
 Start the application first (see the README): the portal opens at <http://localhost:3000> and the administration portal at <http://localhost:3000/admin>. Demo accounts (password `Prestige#2026`): staff `staff1@prestige.test`; customer `amelia.hart@prestige.test`.
 

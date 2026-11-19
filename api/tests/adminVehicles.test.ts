@@ -278,7 +278,7 @@ describe('GET /api/admin/vehicles', () => {
       powerHp: 637,
       priceFrom: null,
     });
-    const other = await createDealership('Prestige Deansgate', 'Manchester');
+    const other = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(other.id, audi.id);
   });
 
@@ -395,7 +395,7 @@ describe('GET /api/admin/vehicles', () => {
 
 describe('GET /api/admin/vehicles/:id', () => {
   it('returns the full record with ordered images and dealerships', async () => {
-    const other = await createDealership('Prestige Deansgate', 'Manchester', { isActive: false });
+    const other = await createDealership('LuxDrive Deansgate', 'Manchester', { isActive: false });
     await linkVehicle(other.id, data.vehicle.id, false);
     await prisma.vehicleImage.createMany({
       data: [
@@ -426,14 +426,14 @@ describe('GET /api/admin/vehicles/:id', () => {
     expect(res.body.data.dealerships).toEqual([
       {
         id: other.id,
-        name: 'Prestige Deansgate',
+        name: 'LuxDrive Deansgate',
         city: 'Manchester',
         isActive: false,
         isAvailable: false,
       },
       {
         id: data.dealership.id,
-        name: 'Prestige Mayfair',
+        name: 'LuxDrive Mayfair',
         city: 'London',
         isActive: true,
         isAvailable: true,
@@ -566,7 +566,7 @@ describe('deactivate and activate', () => {
   );
 
   it('counts bookings at every dealership offering the vehicle', async () => {
-    const other = await createDealership('Prestige Deansgate', 'Manchester');
+    const other = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(other.id, data.vehicle.id);
     const elsewhere = await createSlot({ ...data, dealership: other }, 9, 14);
     await createBooking(data.customer.id, elsewhere.id, 'APPROVED');

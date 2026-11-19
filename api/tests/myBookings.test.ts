@@ -239,7 +239,7 @@ describe('GET /api/bookings/mine: views (A9)', () => {
         name: 'Porsche 911 Carrera T',
         primaryImage: { url: '/uploads/x/1.png', altText: 'Front' },
       },
-      dealership: { name: 'Prestige Mayfair', city: 'London' },
+      dealership: { name: 'LuxDrive Mayfair', city: 'London' },
       canCancel: true,
       cancelBlockedReason: null,
     });
@@ -634,7 +634,7 @@ describe('GET /api/bookings/:id', () => {
       startAt: utcInstant(5, 14).toISOString(),
       canCancel: true,
       vehicle: { name: 'Porsche 911 Carrera T' },
-      dealership: { name: 'Prestige Mayfair', openingHours: 'Mon-Sat 09:00-18:00' },
+      dealership: { name: 'LuxDrive Mayfair', openingHours: 'Mon-Sat 09:00-18:00' },
     });
     const history = res.body.data.statusHistory;
     expect(history.map((h: { action: string }) => h.action)).toEqual([
@@ -644,8 +644,8 @@ describe('GET /api/bookings/:id', () => {
     ]);
     expect(history.map((h: { changedBy: { label: string } }) => h.changedBy.label)).toEqual([
       'You',
-      'Prestige team',
-      'Prestige team',
+      'LuxDrive team',
+      'LuxDrive team',
     ]);
     expect(history[0]).toMatchObject({ fromStatus: null, toStatus: 'PENDING' });
     expect(history[2]).toMatchObject({
@@ -655,7 +655,7 @@ describe('GET /api/bookings/:id', () => {
       oldSlot: {
         id: slot.id,
         startAt: utcInstant(3, 10).toISOString(),
-        dealership: { name: 'Prestige Mayfair' },
+        dealership: { name: 'LuxDrive Mayfair' },
       },
       newSlot: { id: second.id, startAt: utcInstant(5, 14).toISOString() },
     });

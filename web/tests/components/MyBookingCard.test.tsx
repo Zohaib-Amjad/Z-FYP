@@ -30,7 +30,7 @@ const booking = (overrides: Partial<MyBooking> = {}): MyBooking => ({
   },
   dealership: {
     id: 'd1',
-    name: 'Prestige Mayfair',
+    name: 'LuxDrive Mayfair',
     address: '14 Berkeley Square',
     city: 'London',
     phone: '+44',

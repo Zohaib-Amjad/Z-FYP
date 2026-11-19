@@ -8,7 +8,7 @@ export interface MailMessage {
   html: string;
 }
 
-const DEFAULT_SENDER = 'Prestige Test Drive <no-reply@prestige.test>';
+const DEFAULT_SENDER = 'LuxDrive <no-reply@prestige.test>';
 const SECURE_SMTP_PORT = 465;
 const DEFAULT_SMTP_PORT = 587;
 const RULE = '-'.repeat(72);

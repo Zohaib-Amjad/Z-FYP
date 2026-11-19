@@ -190,7 +190,7 @@ const BODY_SCHEMAS: Record<string, ZodTypeAny> = {
 describe('document structure', () => {
   it('is an OpenAPI 3 document with the usual metadata', () => {
     expect(String(document.openapi)).toMatch(/^3\./);
-    expect(resolved(document.info).title).toBe('Prestige Test Drive API');
+    expect(resolved(document.info).title).toBe('LuxDrive API');
     expect(Array.isArray(document.servers) && document.servers.length).toBeGreaterThanOrEqual(1);
     expect(resolved(resolved(document.components).securitySchemes).cookieAuth).toMatchObject({
       type: 'apiKey',
@@ -384,7 +384,7 @@ describe('responses match what the API really returns', () => {
       '+44 7700 900555',
     );
     const audi = await createVehicle({ manufacturer: 'Audi', model: 'RS e-tron GT' });
-    const manchester = await createDealership('Prestige Deansgate', 'Manchester');
+    const manchester = await createDealership('LuxDrive Deansgate', 'Manchester');
     await linkVehicle(manchester.id, audi.id);
     await linkVehicle(data.dealership.id, audi.id);
     const target = { staff: data.staff, vehicle: data.vehicle, dealership: data.dealership };
@@ -506,7 +506,7 @@ describe('Swagger UI', () => {
     expect(page.status).toBe(200);
     expect(page.headers['content-type']).toContain('text/html');
     expect(page.text).toContain('swagger-ui');
-    expect(page.text).toContain('Prestige Test Drive API');
+    expect(page.text).toContain('LuxDrive API');
     expect(page.headers['content-security-policy']).toContain("script-src 'self' 'unsafe-inline'");
     expect(json.status).toBe(200);
     expect(json.body.openapi).toBe(loadOpenApiDocument().openapi);

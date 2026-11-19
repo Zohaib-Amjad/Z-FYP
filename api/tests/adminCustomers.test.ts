@@ -167,7 +167,7 @@ describe('GET /api/admin/customers/:id', () => {
     expect(res.body.data.bookings[0]).toMatchObject({
       slot: {
         vehicle: { manufacturer: 'Porsche', model: '911 Carrera T' },
-        dealership: { name: 'Prestige Mayfair' },
+        dealership: { name: 'LuxDrive Mayfair' },
       },
     });
   });

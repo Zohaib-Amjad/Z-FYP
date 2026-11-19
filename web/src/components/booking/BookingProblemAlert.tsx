@@ -11,7 +11,7 @@ interface BookingProblemAlertProps {
 /** Friendly explanation of a failed booking, with the one action that helps. */
 export function BookingProblemAlert({ problem, vehicleId, returnTo }: BookingProblemAlertProps) {
   return (
-    <div role="alert" className="rounded-card border border-status-rejected/30 bg-[#fdf6f6] p-5">
+    <div role="alert" className="rounded-card border border-status-rejected/30 bg-status-rejected-soft p-5">
       <div className="flex gap-3">
         <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-status-rejected" aria-hidden="true" />
         <div>

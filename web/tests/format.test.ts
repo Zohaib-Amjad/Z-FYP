@@ -16,8 +16,8 @@ describe('enumLabel', () => {
 });
 
 describe('formatters', () => {
-  it('formats prices in pounds without decimals', () => {
-    expect(formatPrice(68000)).toBe('£68,000');
+  it('formats prices in Pakistani rupees without decimals', () => {
+    expect(formatPrice(32000000)).toBe('PKR\u00a032,000,000');
     expect(formatPrice(null)).toBe('Price on request');
   });
 
