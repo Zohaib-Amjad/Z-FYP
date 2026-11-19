@@ -4,9 +4,9 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "node init && tsx watch src/server.ts",
-    "build": "node init && tsc -p tsconfig.build.json",
-    "start": "node init && node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
     "lint": "eslint src tests scripts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"prisma/**/*.ts\"",
     "typecheck": "tsc --noEmit && tsc --noEmit -p prisma",
