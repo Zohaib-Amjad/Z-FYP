@@ -108,6 +108,21 @@ Everything runs on localhost; there is no hosting, payment, map or third-party s
 
 The browser only talks to port 3000; Next.js forwards `/api/*` and `/uploads/*` to the Express server, so the session cookie stays same-origin.
 
+## Hosted demo (Vercel web + Render API)
+
+The web app can run on Vercel and the API on Render, with Vercel's `API_URL` set to the Render service URL.
+
+- **Render build command** (repository root as the root directory): `npm install && npm run build:api:deploy`. This command generates the Prisma client, applies pending migrations (`prisma migrate deploy`), compiles the API and writes the demo vehicle and showroom photographs to `api/uploads/seed`. Render's disk is wiped on every deploy and restart, so the photographs must be written at build time. If they are missing, every vehicle image returns 404.
+- **Render start command:** `npm run start --workspace=api`.
+- **Refreshing the hosted demo data** after the seed changes. Run this from your own machine against the hosted database. It **deletes all hosted data**, re-applies the migrations and reseeds:
+
+  ```bash
+  cd api
+  DATABASE_URL='<hosted connection string>' SEED_PASSWORD='<demo password>' npx prisma migrate reset --force
+  ```
+
+  PowerShell: `$env:DATABASE_URL='<hosted connection string>'; $env:SEED_PASSWORD='<demo password>'; npx prisma migrate reset --force`.
+
 ## Demo accounts
 
 All seeded accounts use the password `Prestige#2026`. These are development fixtures; change or remove them before any real deployment.
