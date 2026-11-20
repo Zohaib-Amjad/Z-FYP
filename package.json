@@ -12,7 +12,7 @@
     "dev:api": "npm run dev --workspace=api",
     "dev:web": "npm run dev --workspace=web",
     "build": "npm run build --workspaces",
-    "build:api:deploy": "npm run build:deploy --workspace=api",
+    "build:api:deploy": "npm run migrate:deploy --workspace=api && npm run build --workspace=api && npm run seed:images --workspace=api",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "npm run test --workspaces --if-present",
